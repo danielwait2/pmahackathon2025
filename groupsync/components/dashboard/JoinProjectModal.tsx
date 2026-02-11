@@ -8,7 +8,6 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { createClient } from '@/lib/supabase';
 
 interface JoinProjectModalProps {
   open: boolean;
@@ -35,44 +34,30 @@ export function JoinProjectModal({ open, onOpenChange }: JoinProjectModalProps) 
 
     setLoading(true);
     try {
-      const supabase = createClient();
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+      const res = await fetch('/api/projects/join', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: normalizedCode }),
+      });
 
-      if (!user) {
-        toast.error('Please log in to join a project.');
-        router.push('/login');
+      const data = await res.json();
+
+      if (!res.ok) {
+        toast.error(data.error ?? 'Unable to join project.');
         return;
       }
 
-      const { data: project, error: projectError } = await supabase
-        .from('projects')
-        .select('id, invite_code')
-        .eq('invite_code', normalizedCode)
-        .maybeSingle();
-
-      if (projectError || !project) {
-        toast.error('Invalid invite code. Check with your team.');
-        return;
-      }
-
-      const { data: membership } = await supabase
-        .from('project_members')
-        .select('id')
-        .eq('project_id', project.id)
-        .eq('user_id', user.id)
-        .maybeSingle();
-
-      if (membership) {
+      if (data.alreadyMember) {
         toast.info("You're already in this project.");
         onOpenChange(false);
-        router.push(`/project/${project.id}`);
+        router.push(`/project/${data.projectId}`);
         return;
       }
 
+      toast.success(`Welcome to ${data.projectName}!`);
       onOpenChange(false);
-      router.push(`/join/${normalizedCode}`);
+      router.push(`/project/${data.projectId}`);
+      router.refresh();
     } catch {
       toast.error('Unable to join project right now.');
     } finally {

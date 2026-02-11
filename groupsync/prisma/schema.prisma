@@ -1,0 +1,102 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(uuid())
+  email         String    @unique
+  name          String
+  password      String
+  avatarUrl     String?   @map("avatar_url")
+  createdAt     DateTime  @default(now()) @map("created_at")
+
+  createdProjects   Project[]         @relation("ProjectCreator")
+  projectMembers    ProjectMember[]
+  availability      Availability[]
+  assignedTasks     Task[]
+
+  @@map("users")
+}
+
+model Project {
+  id           String    @id @default(uuid())
+  name         String
+  description  String?
+  deadline     DateTime?
+  createdById  String    @map("created_by")
+  inviteCode   String    @unique @map("invite_code")
+  createdAt    DateTime  @default(now()) @map("created_at")
+
+  createdBy       User                @relation("ProjectCreator", fields: [createdById], references: [id])
+  members         ProjectMember[]
+  availability    Availability[]
+  tasks           Task[]
+  teamAgreement   TeamAgreement?
+
+  @@map("projects")
+}
+
+model ProjectMember {
+  id         String    @id @default(uuid())
+  projectId  String    @map("project_id")
+  userId     String    @map("user_id")
+  role       String    @default("member")
+  joinedAt   DateTime  @default(now()) @map("joined_at")
+
+  project    Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, userId])
+  @@map("project_members")
+}
+
+model Availability {
+  id         String    @id @default(uuid())
+  projectId  String    @map("project_id")
+  userId     String    @map("user_id")
+  slots      String    @default("[]")
+  updatedAt  DateTime  @updatedAt @map("updated_at")
+
+  project    Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, userId])
+  @@map("availability")
+}
+
+model Task {
+  id          String    @id @default(uuid())
+  projectId   String    @map("project_id")
+  title       String
+  description String?
+  assignedTo  String?   @map("assigned_to")
+  status      String    @default("todo")
+  dueDate     DateTime? @map("due_date")
+  orderIndex  Int       @default(0) @map("order_index")
+  createdAt   DateTime  @default(now()) @map("created_at")
+
+  project     Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  assignee    User?     @relation(fields: [assignedTo], references: [id])
+
+  @@map("tasks")
+}
+
+model TeamAgreement {
+  id                   String    @id @default(uuid())
+  projectId            String    @unique @map("project_id")
+  responseTimeHours    Int       @default(24) @map("response_time_hours")
+  meetingFrequency     String?   @map("meeting_frequency")
+  communicationChannel String?   @map("communication_channel")
+  qualityStandards     String?   @map("quality_standards")
+  agreedBy             String    @default("[]") @map("agreed_by")
+  updatedAt            DateTime  @updatedAt @map("updated_at")
+
+  project              Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@map("team_agreements")
+}

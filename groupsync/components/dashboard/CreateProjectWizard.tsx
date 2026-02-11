@@ -15,7 +15,6 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
-import { createClient } from '@/lib/supabase';
 
 interface CreateProjectWizardProps {
   open: boolean;
@@ -25,7 +24,7 @@ interface CreateProjectWizardProps {
 interface CreatedProject {
   id: string;
   name: string;
-  invite_code: string;
+  inviteCode: string;
 }
 
 const responseTimeMap: Record<string, number> = {
@@ -97,59 +96,31 @@ export function CreateProjectWizard({ open, onOpenChange }: CreateProjectWizardP
 
     setLoading(true);
     try {
-      const supabase = createClient();
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+      const channel = communicationChannel === 'Other' ? customChannel.trim() || 'Other' : communicationChannel;
 
-      if (!user) {
-        toast.error('Please log in to create a project.');
-        router.push('/login');
-        return;
-      }
-
-      const { data: project, error: projectError } = await supabase
-        .from('projects')
-        .insert({
+      const res = await fetch('/api/projects', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
           name: name.trim(),
           description: description.trim() || null,
           deadline: deadline.toISOString().slice(0, 10),
-          created_by: user.id,
-        })
-        .select('id, name, invite_code')
-        .single();
-
-      if (projectError || !project) {
-        toast.error(projectError?.message ?? 'Unable to create project.');
-        return;
-      }
-
-      const { error: memberError } = await supabase.from('project_members').insert({
-        project_id: project.id,
-        user_id: user.id,
-        role: 'owner',
+          responseTimeHours: responseTimeMap[responseTime] ?? 24,
+          meetingFrequency,
+          communicationChannel: channel,
+        }),
       });
 
-      if (memberError) {
-        toast.error(memberError.message);
+      if (!res.ok) {
+        const data = await res.json();
+        toast.error(data.error ?? 'Unable to create project.');
         return;
       }
 
-      const { error: agreementError } = await supabase.from('team_agreements').insert({
-        project_id: project.id,
-        response_time_hours: responseTimeMap[responseTime] ?? 24,
-        meeting_frequency: meetingFrequency,
-        communication_channel: communicationChannel === 'Other' ? customChannel.trim() || 'Other' : communicationChannel,
-      });
-
-      if (agreementError) {
-        toast.error(agreementError.message);
-        return;
-      }
-
+      const project = await res.json();
       setCreatedProject(project);
       setStep(2);
-      toast.success('Project created! Share the invite code with your team.');
+      toast.success('Project created. Set team expectations next.');
     } catch {
       toast.error('Unable to create project right now.');
     } finally {
@@ -157,52 +128,25 @@ export function CreateProjectWizard({ open, onOpenChange }: CreateProjectWizardP
     }
   };
 
-  const saveTeamAgreement = async () => {
-    if (!createdProject) {
-      setStep(3);
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const supabase = createClient();
-      const channel = communicationChannel === 'Other' ? customChannel.trim() || 'Other' : communicationChannel;
-      const { error } = await supabase.from('team_agreements').upsert({
-        project_id: createdProject.id,
-        response_time_hours: responseTimeMap[responseTime] ?? 24,
-        meeting_frequency: meetingFrequency,
-        communication_channel: channel,
-      });
-
-      if (error) {
-        toast.error(error.message);
-        return;
-      }
-
-      setStep(3);
-      toast.success('Team setup saved.');
-    } catch {
-      toast.error('Unable to save team settings.');
-    } finally {
-      setLoading(false);
-    }
+  const skipToInvite = () => {
+    setStep(3);
   };
 
-  const skipStepTwo = () => {
+  const goToInvite = () => {
     setStep(3);
   };
 
   const copyInviteLink = async () => {
     if (!createdProject) return;
-    const inviteUrl = `${window.location.origin}/join/${createdProject.invite_code}`;
+    const inviteUrl = `${window.location.origin}/join/${createdProject.inviteCode}`;
     await navigator.clipboard.writeText(inviteUrl);
-    toast.success('Invite link copied to clipboard!');
+    toast.success('Link copied!');
   };
 
   const copyInviteCode = async () => {
     if (!createdProject) return;
-    await navigator.clipboard.writeText(createdProject.invite_code);
-    toast.success('Invite code copied!');
+    await navigator.clipboard.writeText(createdProject.inviteCode);
+    toast.success('Code copied!');
   };
 
   const done = () => {
@@ -325,11 +269,11 @@ export function CreateProjectWizard({ open, onOpenChange }: CreateProjectWizardP
               )}
             </div>
             <div className="flex items-center justify-between">
-              <Button variant="ghost" onClick={skipStepTwo} disabled={loading}>
+              <Button variant="ghost" onClick={skipToInvite} disabled={loading}>
                 Skip
               </Button>
-              <Button onClick={saveTeamAgreement} disabled={loading}>
-                {loading ? 'Saving...' : 'Next'}
+              <Button onClick={goToInvite} disabled={loading}>
+                Next
               </Button>
             </div>
           </div>
@@ -340,7 +284,7 @@ export function CreateProjectWizard({ open, onOpenChange }: CreateProjectWizardP
             <div className="rounded-lg border border-blue-200 bg-blue-50 p-5 text-center">
               <p className="text-sm font-medium text-blue-700">Invite code</p>
               <p className="mt-2 font-mono text-4xl font-black tracking-[0.35em] text-blue-800">
-                {createdProject.invite_code}
+                {createdProject.inviteCode}
               </p>
             </div>
             <div className="space-y-2">
@@ -348,7 +292,7 @@ export function CreateProjectWizard({ open, onOpenChange }: CreateProjectWizardP
               <div className="flex items-center gap-2">
                 <Input
                   readOnly
-                  value={`${typeof window !== 'undefined' ? window.location.origin : ''}/join/${createdProject.invite_code}`}
+                  value={`${typeof window !== 'undefined' ? window.location.origin : ''}/join/${createdProject.inviteCode}`}
                 />
                 <Button type="button" variant="outline" onClick={copyInviteLink}>
                   <Copy className="h-4 w-4" />

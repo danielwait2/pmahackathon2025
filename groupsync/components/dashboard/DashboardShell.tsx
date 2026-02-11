@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { LogOut, Plus, UserPlus } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import { signOut } from 'next-auth/react';
 import { toast } from 'sonner';
 
 import { CreateProjectWizard } from '@/components/dashboard/CreateProjectWizard';
@@ -10,7 +10,6 @@ import { JoinProjectModal } from '@/components/dashboard/JoinProjectModal';
 import { ProjectList } from '@/components/dashboard/ProjectList';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { createClient } from '@/lib/supabase';
 import { DashboardProject } from '@/types';
 
 interface DashboardShellProps {
@@ -30,7 +29,6 @@ function getInitials(nameOrEmail: string) {
 }
 
 export function DashboardShell({ userName, userEmail, userAvatarUrl, projects }: DashboardShellProps) {
-  const router = useRouter();
   const [createOpen, setCreateOpen] = useState(false);
   const [joinOpen, setJoinOpen] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
@@ -38,17 +36,9 @@ export function DashboardShell({ userName, userEmail, userAvatarUrl, projects }:
   const handleLogout = async () => {
     setLoggingOut(true);
     try {
-      const supabase = createClient();
-      const { error } = await supabase.auth.signOut();
-      if (error) {
-        toast.error(error.message);
-        return;
-      }
-      router.push('/login');
-      router.refresh();
+      await signOut({ callbackUrl: '/login' });
     } catch {
       toast.error('Unable to log out right now.');
-    } finally {
       setLoggingOut(false);
     }
   };
