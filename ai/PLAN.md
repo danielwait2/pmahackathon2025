@@ -98,23 +98,23 @@ GEMINI_API_KEY=<your-gemini-api-key>
 
 Use this to track overall progress. Detailed checklists are in each phase file.
 
-### Phase 0: Scaffold
-- [ ] Next.js 14 project initialized with TypeScript
-- [ ] Tailwind CSS configured
-- [ ] shadcn/ui installed with required components
-- [ ] Supabase client library installed
-- [ ] Folder structure created
-- [ ] `npm run dev` works at localhost:3000
+### Phase 0: Scaffold ✅
+- [x] Next.js 14 project initialized with TypeScript
+- [x] Tailwind CSS configured
+- [x] shadcn/ui installed with required components
+- [x] Supabase client library installed
+- [x] Folder structure created
+- [x] `npm run dev` works at localhost:3000
 
-### Phase 1: Database & Auth
-- [ ] Supabase project created, URL and anon key saved
-- [ ] Database schema created (6 tables + RLS)
-- [ ] RLS policies tested in Supabase dashboard
-- [ ] Supabase client setup (browser + server)
-- [ ] Signup flow working (creates profile)
-- [ ] Login flow working (redirects to dashboard)
-- [ ] Auth middleware protecting routes
-- [ ] AuthProvider context working
+### Phase 1: Database & Auth ⚠️ (Code Complete - Needs Supabase Setup)
+- [ ] Supabase project created, URL and anon key saved (MANUAL STEP REQUIRED)
+- [ ] Database schema created (6 tables + RLS) (MANUAL STEP REQUIRED - SQL in phase-1-database-auth.md)
+- [ ] RLS policies tested in Supabase dashboard (MANUAL STEP REQUIRED)
+- [x] Supabase client setup (browser + server)
+- [x] Signup flow working (creates profile) - CODE READY
+- [x] Login flow working (redirects to dashboard) - CODE READY
+- [x] Auth middleware protecting routes
+- [x] AuthProvider context working
 
 ### Phase 2: Landing Page
 - [ ] Hero section with headline and CTAs
