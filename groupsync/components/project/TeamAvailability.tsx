@@ -81,26 +81,28 @@ export function TeamAvailability({ availabilities }: TeamAvailabilityProps) {
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
-            <div className="inline-block min-w-full">
+            <div className="inline-block min-w-full border border-slate-200 rounded-lg overflow-hidden">
               {/* Header Row - Days */}
-              <div className="grid grid-cols-8 gap-px bg-slate-200 rounded-t-lg overflow-hidden">
-                <div className="bg-white p-2 text-xs font-medium text-slate-600">Time</div>
-                {DAYS_OF_WEEK.map((day) => (
-                  <div key={day} className="bg-white p-2 text-xs font-medium text-center text-slate-900">
+              <div className="grid grid-cols-8">
+                <div className="bg-slate-50 border-b border-r border-slate-200 p-2 text-xs font-medium text-slate-600">Time</div>
+                {DAYS_OF_WEEK.map((day, idx) => (
+                  <div key={day} className={`bg-slate-50 border-b border-slate-200 p-2 text-xs font-medium text-center text-slate-900 ${idx < 6 ? 'border-r' : ''}`}>
                     {day.substring(0, 3)}
                   </div>
                 ))}
               </div>
 
               {/* Time Slots Grid */}
-              <div className="grid grid-cols-8 gap-px bg-slate-200">
+              <div className="grid grid-cols-8">
                 {DISPLAY_HALF_HOURS.map((halfHour) => {
                   const halfHourIndex = Math.floor(halfHour * 2);
+                  const isFullHour = halfHour % 1 === 0;
+
                   return (
                     <React.Fragment key={halfHour}>
                       {/* Time Label (only show on the hour) */}
-                      <div className="bg-white p-1 text-xs text-slate-600 flex items-center">
-                        {halfHour % 1 === 0 ? formatHour(halfHour) : ''}
+                      <div className={`h-4 bg-white text-xs text-slate-600 flex items-center border-r border-slate-200 ${isFullHour ? 'p-1 font-bold border-t-2 border-t-slate-300' : ''}`}>
+                        {isFullHour ? formatHour(halfHour) : ''}
                       </div>
 
                       {/* Day Cells */}
@@ -109,21 +111,21 @@ export function TeamAvailability({ availabilities }: TeamAvailabilityProps) {
 
                         // Generate color based on how many people are available
                         const bgColor = count === 0
-                          ? 'bg-white'
+                          ? 'bg-white hover:bg-slate-50'
                           : count === maxCount
-                          ? 'bg-green-600'
+                          ? 'bg-green-600 hover:bg-green-700'
                           : count >= maxCount / 2
-                          ? 'bg-green-400'
-                          : 'bg-green-200';
+                          ? 'bg-green-400 hover:bg-green-500'
+                          : 'bg-green-200 hover:bg-green-300';
 
                         return (
                           <div
                             key={`${day}-${halfHourIndex}`}
-                            className={`h-4 flex items-center justify-center text-xs transition-colors ${bgColor}`}
+                            className={`h-4 flex items-center justify-center text-[10px] transition-colors ${bgColor} ${isFullHour ? 'border-t-2 border-t-slate-300' : ''}`}
                             title={`${count} of ${maxCount} available`}
                           >
-                            {count > 0 && halfHour % 1 === 0 && (
-                              <span className={count >= maxCount / 2 ? 'text-white font-medium' : 'text-slate-700'}>
+                            {count > 0 && (
+                              <span className={count >= maxCount / 2 ? 'text-white font-bold' : 'text-slate-700 font-semibold'}>
                                 {count}
                               </span>
                             )}

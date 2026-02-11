@@ -91,6 +91,11 @@ export function CreateProjectWizard({ open, onOpenChange }: CreateProjectWizardP
     }
   };
 
+  const goToPreferences = () => {
+    if (!stepOneValid) return;
+    setStep(2);
+  };
+
   const handleCreateProject = async () => {
     if (!stepOneValid || !deadline) return;
 
@@ -119,21 +124,13 @@ export function CreateProjectWizard({ open, onOpenChange }: CreateProjectWizardP
 
       const project = await res.json();
       setCreatedProject(project);
-      setStep(2);
-      toast.success('Project created. Set team expectations next.');
+      setStep(3);
+      toast.success('Project created!');
     } catch {
       toast.error('Unable to create project right now.');
     } finally {
       setLoading(false);
     }
-  };
-
-  const skipToInvite = () => {
-    setStep(3);
-  };
-
-  const goToInvite = () => {
-    setStep(3);
   };
 
   const copyInviteLink = async () => {
@@ -209,8 +206,8 @@ export function CreateProjectWizard({ open, onOpenChange }: CreateProjectWizardP
               )}
             </div>
             <div className="flex justify-end">
-              <Button onClick={handleCreateProject} disabled={!stepOneValid || loading}>
-                {loading ? 'Creating...' : 'Next'}
+              <Button onClick={goToPreferences} disabled={!stepOneValid}>
+                Next
               </Button>
             </div>
           </div>
@@ -269,11 +266,11 @@ export function CreateProjectWizard({ open, onOpenChange }: CreateProjectWizardP
               )}
             </div>
             <div className="flex items-center justify-between">
-              <Button variant="ghost" onClick={skipToInvite} disabled={loading}>
-                Skip
+              <Button variant="ghost" onClick={() => setStep(1)} disabled={loading}>
+                Back
               </Button>
-              <Button onClick={goToInvite} disabled={loading}>
-                Next
+              <Button onClick={handleCreateProject} disabled={loading}>
+                {loading ? 'Creating...' : 'Create Project'}
               </Button>
             </div>
           </div>

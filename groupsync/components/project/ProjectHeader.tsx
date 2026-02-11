@@ -1,8 +1,9 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { format } from 'date-fns';
-import { CalendarClock, Copy, Users } from 'lucide-react';
+import { CalendarClock, Copy, Users, ArrowLeft, Home } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { Badge } from '@/components/ui/badge';
@@ -33,6 +34,22 @@ export function ProjectHeader({ name, description, deadline, inviteCode, memberC
 
   return (
     <header className="space-y-4 rounded-xl border border-slate-200 bg-white p-5 sm:p-6">
+      {/* Navigation */}
+      <div className="flex items-center gap-2 pb-3 border-b border-slate-100">
+        <Link href="/dashboard">
+          <Button variant="ghost" size="sm" className="gap-2">
+            <Home className="h-4 w-4" />
+            Home
+          </Button>
+        </Link>
+        <Link href="/projects">
+          <Button variant="ghost" size="sm" className="gap-2">
+            <ArrowLeft className="h-4 w-4" />
+            All Projects
+          </Button>
+        </Link>
+      </div>
+
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div className="space-y-2">
           <h1 className="text-2xl font-black tracking-tight text-slate-900 sm:text-3xl">{name}</h1>
