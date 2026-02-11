@@ -1,17 +1,10 @@
 import { NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-
-import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { getProjectMember } from '@/lib/auth-helpers';
 
 const allowedStatuses = new Set(['todo', 'in_progress', 'done']);
 
 export async function POST(request: Request) {
-  const session = await getServerSession(authOptions);
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-
   const body = await request.json();
   const projectId = body.projectId as string | undefined;
   const title = (body.title as string | undefined)?.trim();
@@ -20,18 +13,9 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'projectId and title are required' }, { status: 400 });
   }
 
-  const membership = await prisma.projectMember.findUnique({
-    where: {
-      projectId_userId: {
-        projectId,
-        userId: session.user.id,
-      },
-    },
-    select: { id: true },
-  });
-
-  if (!membership) {
-    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+  const member = await getProjectMember(projectId);
+  if (!member) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
   const currentMax = await prisma.task.aggregate({

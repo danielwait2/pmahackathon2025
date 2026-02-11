@@ -1,34 +1,18 @@
-import { notFound, redirect } from 'next/navigation';
-import { getServerSession } from 'next-auth';
-
+import { notFound } from 'next/navigation';
 import { ProjectHeader } from '@/components/project/ProjectHeader';
 import { ProjectTabs } from '@/components/project/ProjectTabs';
-import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { getProjectMember } from '@/lib/auth-helpers';
 
 interface ProjectPageProps {
   params: Promise<{ id: string }>;
 }
 
 export default async function ProjectPage({ params }: ProjectPageProps) {
-  const session = await getServerSession(authOptions);
-  if (!session?.user?.id) {
-    redirect('/login');
-  }
-
   const { id } = await params;
 
-  const membership = await prisma.projectMember.findUnique({
-    where: {
-      projectId_userId: {
-        projectId: id,
-        userId: session.user.id,
-      },
-    },
-    select: { role: true },
-  });
-
-  if (!membership) {
+  const member = await getProjectMember(id);
+  if (!member) {
     notFound();
   }
 
@@ -57,6 +41,9 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
           user: {
             select: { id: true, name: true },
           },
+          guestMember: {
+            select: { id: true, guestName: true },
+          },
         },
       },
     },
@@ -75,37 +62,54 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
           deadline={project.deadline?.toISOString() ?? null}
           inviteCode={project.inviteCode}
           memberCount={project.members.length}
+          shareToken={project.shareToken}
+          isOwner={!member.isGuest && project.createdById === member.userId}
+          projectId={project.id}
         />
         <ProjectTabs
           projectId={project.id}
-          currentUserId={session.user.id}
-          isOwner={project.createdById === session.user.id}
+          currentUserId={member.userId || member.memberId}
+          currentMemberId={member.memberId}
+          isOwner={!member.isGuest && project.createdById === member.userId}
           tasks={project.tasks.map((task) => ({
             id: task.id,
             title: task.title,
             description: task.description,
-            status: task.status,
+            status: task.status as 'todo' | 'in_progress' | 'done',
             dueDate: task.dueDate?.toISOString() ?? null,
             assigneeName: task.assignee?.name ?? null,
             assignedTo: task.assignedTo,
             createdAt: task.createdAt.toISOString(),
           }))}
-          members={project.members.map((member) => ({
-            id: member.user.id,
-            name: member.user.name,
-            email: member.user.email,
-            avatarUrl: member.user.avatarUrl,
-            role: member.role,
-            joinedAt: member.joinedAt.toISOString(),
+          members={project.members.map((m) => ({
+            id: m.id,
+            assigneeId: m.user?.id ?? null,
+            name: m.user?.name || m.guestName || 'Guest',
+            email: m.user?.email || null,
+            avatarUrl: m.user?.avatarUrl || null,
+            role: m.role,
+            joinedAt: m.joinedAt.toISOString(),
           }))}
           teamAgreement={project.teamAgreement}
-          availabilities={project.availability.map((avail) => ({
-            userId: avail.userId,
-            userName: avail.user.name,
-            slots: JSON.parse(avail.slots),
-          }))}
+          availabilities={project.availability.map((avail) => {
+            let slots: { day: number; startHour: number; endHour: number }[] = [];
+            try {
+              const parsed = JSON.parse(avail.slots);
+              slots = Array.isArray(parsed) ? parsed : [];
+            } catch {
+              slots = [];
+            }
+            return {
+              userId: avail.userId || avail.guestMemberId || '',
+              userName: avail.user?.name || avail.guestMember?.guestName || 'Guest',
+              slots,
+            };
+          })}
           currentUserAvailability={
-            project.availability.find((a) => a.userId === session.user.id)?.slots ?? '[]'
+            project.availability.find((a) =>
+              (member.isGuest && a.guestMemberId === member.memberId) ||
+              (!member.isGuest && a.userId === member.userId)
+            )?.slots ?? '[]'
           }
         />
       </div>

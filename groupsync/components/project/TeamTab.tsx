@@ -11,8 +11,9 @@ import { TeamAgreementEditor, type TeamAgreementFormData } from './TeamAgreement
 
 export interface TeamMemberItem {
   id: string;
+  assigneeId?: string | null;
   name: string;
-  email: string;
+  email: string | null;
   avatarUrl: string | null;
   role: string;
   joinedAt: string;
@@ -21,6 +22,7 @@ export interface TeamMemberItem {
 interface TeamTabProps {
   projectId: string;
   currentUserId: string;
+  currentMemberId: string;
   isOwner: boolean;
   members: TeamMemberItem[];
   teamAgreement: TeamAgreementData | null;
@@ -36,7 +38,7 @@ function initials(name: string) {
     .join('');
 }
 
-export function TeamTab({ projectId, currentUserId, isOwner, members, teamAgreement, onRefresh }: TeamTabProps) {
+export function TeamTab({ projectId, currentUserId, currentMemberId, isOwner, members, teamAgreement, onRefresh }: TeamTabProps) {
   const [isEditing, setIsEditing] = useState(false);
 
   const handleSubmit = async (data: TeamAgreementFormData) => {
@@ -67,7 +69,7 @@ export function TeamTab({ projectId, currentUserId, isOwner, members, teamAgreem
     onRefresh();
   };
 
-  const hasAgreed = teamAgreement?.agreedBy.includes(currentUserId) ?? false;
+  const hasAgreed = teamAgreement?.agreedBy.includes(currentMemberId) ?? false;
 
   return (
     <div className="grid gap-4 lg:grid-cols-[1.3fr,1fr]">
@@ -81,7 +83,7 @@ export function TeamTab({ projectId, currentUserId, isOwner, members, teamAgreem
               <div className="flex items-center gap-3">
                 <Avatar>
                   <AvatarImage src={member.avatarUrl ?? undefined} alt={member.name} />
-                  <AvatarFallback>{initials(member.name || member.email)}</AvatarFallback>
+                  <AvatarFallback>{initials(member.name || member.email || 'Guest')}</AvatarFallback>
                 </Avatar>
                 <div>
                   <p className="font-medium text-slate-900">{member.name}</p>

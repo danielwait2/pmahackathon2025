@@ -55,11 +55,21 @@ export default async function DashboardPage() {
     const membersByProject: Record<string, ProjectMemberPreview[]> = {};
     for (const member of memberRows) {
       if (!membersByProject[member.projectId]) membersByProject[member.projectId] = [];
-      membersByProject[member.projectId].push({
-        id: member.user.id,
-        name: member.user.name,
-        avatar_url: member.user.avatarUrl,
-      });
+      // Handle both authenticated users and guests
+      if (member.user) {
+        membersByProject[member.projectId].push({
+          id: member.user.id,
+          name: member.user.name,
+          avatar_url: member.user.avatarUrl,
+        });
+      } else if (member.guestName) {
+        // Guest member
+        membersByProject[member.projectId].push({
+          id: member.id,
+          name: member.guestName,
+          avatar_url: null,
+        });
+      }
     }
 
     projects = projectRows.map((project) => {

@@ -32,7 +32,7 @@ export function LoginForm() {
         toast.error('Invalid email or password');
       } else {
         toast.success('Logged in successfully!');
-        const redirectTo = searchParams.get('redirect') || '/dashboard';
+        const redirectTo = searchParams.get('callbackUrl') || searchParams.get('redirect') || '/dashboard';
         router.push(redirectTo);
         router.refresh();
       }

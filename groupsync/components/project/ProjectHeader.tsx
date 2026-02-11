@@ -3,11 +3,12 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { format } from 'date-fns';
-import { CalendarClock, Copy, Users, ArrowLeft, Home } from 'lucide-react';
+import { CalendarClock, Copy, Users, ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { ShareLinkManager } from './ShareLinkManager';
 
 interface ProjectHeaderProps {
   name: string;
@@ -15,9 +16,12 @@ interface ProjectHeaderProps {
   deadline: string | null;
   inviteCode: string;
   memberCount: number;
+  shareToken?: string | null;
+  isOwner?: boolean;
+  projectId?: string;
 }
 
-export function ProjectHeader({ name, description, deadline, inviteCode, memberCount }: ProjectHeaderProps) {
+export function ProjectHeader({ name, description, deadline, inviteCode, memberCount, shareToken, isOwner, projectId }: ProjectHeaderProps) {
   const [copying, setCopying] = useState(false);
 
   const copyCode = async () => {
@@ -67,6 +71,12 @@ export function ProjectHeader({ name, description, deadline, inviteCode, memberC
           {deadline ? format(new Date(deadline), 'MMMM d, yyyy') : 'No deadline set'}
         </span>
       </div>
+
+      {isOwner && projectId && (
+        <div className="pt-4 border-t border-slate-100">
+          <ShareLinkManager projectId={projectId} initialShareToken={shareToken || null} />
+        </div>
+      )}
     </header>
   );
 }

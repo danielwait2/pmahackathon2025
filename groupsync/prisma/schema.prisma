@@ -30,6 +30,7 @@ model Project {
   deadline     DateTime?
   createdById  String    @map("created_by")
   inviteCode   String    @unique @map("invite_code")
+  shareToken   String?   @unique @map("share_token")
   createdAt    DateTime  @default(now()) @map("created_at")
 
   createdBy       User                @relation("ProjectCreator", fields: [createdById], references: [id])
@@ -42,30 +43,35 @@ model Project {
 }
 
 model ProjectMember {
-  id         String    @id @default(uuid())
-  projectId  String    @map("project_id")
-  userId     String    @map("user_id")
-  role       String    @default("member")
-  joinedAt   DateTime  @default(now()) @map("joined_at")
+  id                 String         @id @default(uuid())
+  projectId          String         @map("project_id")
+  userId             String?        @map("user_id")
+  guestName          String?        @map("guest_name")
+  role               String         @default("member")
+  joinedAt           DateTime       @default(now()) @map("joined_at")
 
-  project    Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  project            Project        @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user               User?          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  guestAvailability  Availability[]
 
   @@unique([projectId, userId])
   @@map("project_members")
 }
 
 model Availability {
-  id         String    @id @default(uuid())
-  projectId  String    @map("project_id")
-  userId     String    @map("user_id")
-  slots      String    @default("[]")
-  updatedAt  DateTime  @updatedAt @map("updated_at")
+  id               String    @id @default(uuid())
+  projectId        String    @map("project_id")
+  userId           String?   @map("user_id")
+  guestMemberId    String?   @map("guest_member_id")
+  slots            String    @default("[]")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
 
-  project    Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  project          Project         @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user             User?           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  guestMember      ProjectMember?  @relation(fields: [guestMemberId], references: [id], onDelete: Cascade)
 
   @@unique([projectId, userId])
+  @@unique([projectId, guestMemberId])
   @@map("availability")
 }
 

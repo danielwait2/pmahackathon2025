@@ -1,8 +1,6 @@
 import { NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-
-import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { getProjectMember } from '@/lib/auth-helpers';
 
 const allowedStatuses = new Set(['todo', 'in_progress', 'done']);
 
@@ -10,7 +8,7 @@ interface RouteProps {
   params: Promise<{ id: string }>;
 }
 
-async function getAuthorizedTask(taskId: string, userId: string) {
+async function getAuthorizedTask(taskId: string) {
   const task = await prisma.task.findUnique({
     where: { id: taskId },
     select: { id: true, projectId: true },
@@ -20,27 +18,13 @@ async function getAuthorizedTask(taskId: string, userId: string) {
     return { task: null, authorized: false };
   }
 
-  const membership = await prisma.projectMember.findUnique({
-    where: {
-      projectId_userId: {
-        projectId: task.projectId,
-        userId,
-      },
-    },
-    select: { id: true },
-  });
-
-  return { task, authorized: Boolean(membership) };
+  const member = await getProjectMember(task.projectId);
+  return { task, authorized: Boolean(member) };
 }
 
 export async function PATCH(request: Request, { params }: RouteProps) {
-  const session = await getServerSession(authOptions);
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-
   const { id } = await params;
-  const { task, authorized } = await getAuthorizedTask(id, session.user.id);
+  const { task, authorized } = await getAuthorizedTask(id);
 
   if (!task) {
     return NextResponse.json({ error: 'Task not found' }, { status: 404 });
@@ -91,13 +75,8 @@ export async function PATCH(request: Request, { params }: RouteProps) {
 }
 
 export async function DELETE(_request: Request, { params }: RouteProps) {
-  const session = await getServerSession(authOptions);
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-
   const { id } = await params;
-  const { task, authorized } = await getAuthorizedTask(id, session.user.id);
+  const { task, authorized } = await getAuthorizedTask(id);
 
   if (!task) {
     return NextResponse.json({ error: 'Task not found' }, { status: 404 });

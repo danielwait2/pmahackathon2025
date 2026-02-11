@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { getProjectMember } from '@/lib/auth-helpers';
 
 interface RouteProps {
   params: Promise<{ projectId: string }>;
@@ -71,26 +71,11 @@ export async function PATCH(request: Request, { params }: RouteProps) {
 }
 
 export async function GET(_request: Request, { params }: RouteProps) {
-  const session = await getServerSession(authOptions);
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-
   const { projectId } = await params;
 
-  // Verify user is a member
-  const membership = await prisma.projectMember.findUnique({
-    where: {
-      projectId_userId: {
-        projectId,
-        userId: session.user.id,
-      },
-    },
-    select: { id: true },
-  });
-
-  if (!membership) {
-    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+  const member = await getProjectMember(projectId);
+  if (!member) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
   // Get team agreement

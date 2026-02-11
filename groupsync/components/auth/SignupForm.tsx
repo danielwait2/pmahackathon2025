@@ -63,7 +63,7 @@ export function SignupForm() {
         router.push('/login');
       } else {
         toast.success('Account created successfully!');
-        const redirectTo = searchParams.get('redirect') || '/dashboard';
+        const redirectTo = searchParams.get('callbackUrl') || searchParams.get('redirect') || '/dashboard';
         router.push(redirectTo);
         router.refresh();
       }

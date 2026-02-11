@@ -21,6 +21,7 @@ interface TeamAgreementData {
 interface ProjectTabsProps {
   projectId: string;
   currentUserId: string;
+  currentMemberId: string;
   isOwner: boolean;
   tasks: ProjectTaskItem[];
   members: TeamMemberItem[];
@@ -32,6 +33,7 @@ interface ProjectTabsProps {
 export function ProjectTabs({
   projectId,
   currentUserId,
+  currentMemberId,
   isOwner,
   tasks,
   members,
@@ -74,7 +76,9 @@ export function ProjectTabs({
         <TasksTab
           projectId={projectId}
           tasks={tasks}
-          members={members.map((m) => ({ id: m.id, name: m.name }))}
+          members={members
+            .filter((m) => m.assigneeId)
+            .map((m) => ({ id: m.assigneeId!, name: m.name }))}
           onRefresh={handleRefresh}
         />
       </TabsContent>
@@ -93,6 +97,7 @@ export function ProjectTabs({
         <TeamTab
           projectId={projectId}
           currentUserId={currentUserId}
+          currentMemberId={currentMemberId}
           isOwner={isOwner}
           members={members}
           teamAgreement={
@@ -103,7 +108,14 @@ export function ProjectTabs({
                   meetingFrequency: teamAgreement.meetingFrequency,
                   communicationChannel: teamAgreement.communicationChannel,
                   qualityStandards: teamAgreement.qualityStandards,
-                  agreedBy: JSON.parse(teamAgreement.agreedBy),
+                  agreedBy: (() => {
+                    try {
+                      const parsed = JSON.parse(teamAgreement.agreedBy);
+                      return Array.isArray(parsed) ? parsed : [];
+                    } catch {
+                      return [];
+                    }
+                  })(),
                   updatedAt: teamAgreement.updatedAt.toISOString(),
                 }
               : null

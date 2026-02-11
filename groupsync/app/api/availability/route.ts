@@ -1,15 +1,8 @@
 import { NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-
-import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { getProjectMember } from '@/lib/auth-helpers';
 
 export async function POST(request: Request) {
-  const session = await getServerSession(authOptions);
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-
   const body = await request.json();
   const projectId = body.projectId as string | undefined;
   const slots = body.slots;
@@ -22,19 +15,9 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'slots must be an array' }, { status: 400 });
   }
 
-  // Verify user is a member of the project
-  const membership = await prisma.projectMember.findUnique({
-    where: {
-      projectId_userId: {
-        projectId,
-        userId: session.user.id,
-      },
-    },
-    select: { id: true },
-  });
-
-  if (!membership) {
-    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+  const member = await getProjectMember(projectId);
+  if (!member) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
   // Validate slots structure
@@ -59,22 +42,47 @@ export async function POST(request: Request) {
   }
 
   // Upsert availability (create or update)
-  const availability = await prisma.availability.upsert({
-    where: {
-      projectId_userId: {
-        projectId,
-        userId: session.user.id,
+  let availability;
+
+  if (member.isGuest) {
+    // Guest member - use guestMemberId unique key
+    availability = await prisma.availability.upsert({
+      where: {
+        projectId_guestMemberId: {
+          projectId,
+          guestMemberId: member.memberId,
+        },
       },
-    },
-    create: {
-      projectId,
-      userId: session.user.id,
-      slots: JSON.stringify(slots),
-    },
-    update: {
-      slots: JSON.stringify(slots),
-    },
-  });
+      create: {
+        projectId,
+        userId: null,
+        guestMemberId: member.memberId,
+        slots: JSON.stringify(slots),
+      },
+      update: {
+        slots: JSON.stringify(slots),
+      },
+    });
+  } else {
+    // Authenticated user - use userId unique key
+    availability = await prisma.availability.upsert({
+      where: {
+        projectId_userId: {
+          projectId,
+          userId: member.userId!,
+        },
+      },
+      create: {
+        projectId,
+        userId: member.userId!,
+        guestMemberId: null,
+        slots: JSON.stringify(slots),
+      },
+      update: {
+        slots: JSON.stringify(slots),
+      },
+    });
+  }
 
   return NextResponse.json(availability, { status: 200 });
 }
