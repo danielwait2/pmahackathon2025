@@ -91,17 +91,24 @@ export function ProjectTabs({
 
       <TabsContent value="team">
         <TeamTab
+          projectId={projectId}
+          currentUserId={currentUserId}
+          isOwner={isOwner}
           members={members}
           teamAgreement={
             teamAgreement
               ? {
+                  id: teamAgreement.id,
                   responseTimeHours: teamAgreement.responseTimeHours,
                   meetingFrequency: teamAgreement.meetingFrequency,
                   communicationChannel: teamAgreement.communicationChannel,
                   qualityStandards: teamAgreement.qualityStandards,
+                  agreedBy: JSON.parse(teamAgreement.agreedBy),
+                  updatedAt: teamAgreement.updatedAt.toISOString(),
                 }
               : null
           }
+          onRefresh={handleRefresh}
         />
       </TabsContent>
     </Tabs>

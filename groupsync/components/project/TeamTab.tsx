@@ -1,8 +1,13 @@
+'use client';
+
+import { useState } from 'react';
 import { format } from 'date-fns';
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { TeamAgreement, type TeamAgreementData } from './TeamAgreement';
+import { TeamAgreementEditor, type TeamAgreementFormData } from './TeamAgreementEditor';
 
 export interface TeamMemberItem {
   id: string;
@@ -13,16 +18,13 @@ export interface TeamMemberItem {
   joinedAt: string;
 }
 
-interface TeamAgreementItem {
-  responseTimeHours: number;
-  meetingFrequency: string | null;
-  communicationChannel: string | null;
-  qualityStandards: string | null;
-}
-
 interface TeamTabProps {
+  projectId: string;
+  currentUserId: string;
+  isOwner: boolean;
   members: TeamMemberItem[];
-  teamAgreement: TeamAgreementItem | null;
+  teamAgreement: TeamAgreementData | null;
+  onRefresh: () => void;
 }
 
 function initials(name: string) {
@@ -34,7 +36,39 @@ function initials(name: string) {
     .join('');
 }
 
-export function TeamTab({ members, teamAgreement }: TeamTabProps) {
+export function TeamTab({ projectId, currentUserId, isOwner, members, teamAgreement, onRefresh }: TeamTabProps) {
+  const [isEditing, setIsEditing] = useState(false);
+
+  const handleSubmit = async (data: TeamAgreementFormData) => {
+    const response = await fetch(`/api/team-agreement/${projectId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to save team agreement');
+    }
+
+    onRefresh();
+    setIsEditing(false);
+  };
+
+  const handleAgree = async () => {
+    const response = await fetch(`/api/team-agreement/${projectId}/agree`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to agree to team agreement');
+    }
+
+    onRefresh();
+  };
+
+  const hasAgreed = teamAgreement?.agreedBy.includes(currentUserId) ?? false;
+
   return (
     <div className="grid gap-4 lg:grid-cols-[1.3fr,1fr]">
       <Card>
@@ -60,17 +94,33 @@ export function TeamTab({ members, teamAgreement }: TeamTabProps) {
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Team Agreement</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-2 text-sm text-slate-600">
-          <p>Response time: within {teamAgreement?.responseTimeHours ?? 24} hours</p>
-          <p>Meeting frequency: {teamAgreement?.meetingFrequency ?? 'Not set'}</p>
-          <p>Communication: {teamAgreement?.communicationChannel ?? 'Not set'}</p>
-          <p>Quality standards: {teamAgreement?.qualityStandards ?? 'Not set'}</p>
-        </CardContent>
-      </Card>
+      <TeamAgreement
+        agreement={teamAgreement}
+        members={members.map((m) => ({ id: m.id, name: m.name }))}
+        currentUserId={currentUserId}
+        isOwner={isOwner}
+        hasAgreed={hasAgreed}
+        onEdit={() => setIsEditing(true)}
+        onAgree={handleAgree}
+      />
+
+      {isEditing && (
+        <TeamAgreementEditor
+          open={isEditing}
+          onClose={() => setIsEditing(false)}
+          initialData={
+            teamAgreement
+              ? {
+                  responseTimeHours: teamAgreement.responseTimeHours,
+                  meetingFrequency: teamAgreement.meetingFrequency ?? '',
+                  communicationChannel: teamAgreement.communicationChannel ?? '',
+                  qualityStandards: teamAgreement.qualityStandards ?? '',
+                }
+              : undefined
+          }
+          onSubmit={handleSubmit}
+        />
+      )}
     </div>
   );
 }
