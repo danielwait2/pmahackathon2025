@@ -9,6 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Availability, Project, ProjectMember, Task, TeamAgreement } from '@/types';
 
 import { AvailabilityTab } from '@/components/project/AvailabilityTab';
+import { TeamTab } from '@/components/project/TeamTab';
 import { TasksTab } from '@/components/project/TasksTab';
 
 interface ProjectTabsProps {
@@ -19,52 +20,6 @@ interface ProjectTabsProps {
   teamAgreement: TeamAgreement | null;
   currentUserId: string;
   isOwner: boolean;
-}
-
-function TeamTab({
-  members,
-  agreement,
-}: {
-  members: Array<ProjectMember & { profile: { id: string; name: string; avatar_url: string | null } }>;
-  agreement: TeamAgreement | null;
-}) {
-  return (
-    <div className="grid gap-4 lg:grid-cols-2">
-      <Card>
-        <CardHeader>
-          <CardTitle>Team Members</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          {members.map((member) => (
-            <div key={member.id} className="flex items-center justify-between rounded-md border border-slate-200 p-3">
-              <div>
-                <p className="font-medium text-slate-900">{member.profile.name}</p>
-                <p className="text-xs text-slate-500">{member.role === 'owner' ? 'Owner' : 'Member'}</p>
-              </div>
-              <span className="text-xs text-slate-500">Joined {format(new Date(member.joined_at), 'MMM d')}</span>
-            </div>
-          ))}
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Team Agreement</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-2 text-sm text-slate-700">
-          <p>
-            <span className="font-semibold text-slate-900">Response time:</span> {agreement?.response_time_hours ?? 24} hours
-          </p>
-          <p>
-            <span className="font-semibold text-slate-900">Meetings:</span> {agreement?.meeting_frequency ?? 'Weekly'}
-          </p>
-          <p>
-            <span className="font-semibold text-slate-900">Channel:</span> {agreement?.communication_channel ?? 'Discord'}
-          </p>
-        </CardContent>
-      </Card>
-    </div>
-  );
 }
 
 export function ProjectTabs({
@@ -95,7 +50,7 @@ export function ProjectTabs({
 
   return (
     <Tabs value={tab} onValueChange={setTab} className="space-y-4">
-      <TabsList>
+      <TabsList className="w-full justify-start overflow-x-auto">
         <TabsTrigger value="overview">Overview</TabsTrigger>
         <TabsTrigger value="tasks">Tasks</TabsTrigger>
         <TabsTrigger value="availability">Availability</TabsTrigger>
@@ -181,7 +136,14 @@ export function ProjectTabs({
       </TabsContent>
 
       <TabsContent value="team">
-        <TeamTab members={members} agreement={teamAgreement} />
+        <TeamTab
+          projectId={project.id}
+          inviteCode={project.invite_code}
+          members={members}
+          initialAgreement={teamAgreement}
+          currentUserId={currentUserId}
+          isOwner={isOwner}
+        />
       </TabsContent>
     </Tabs>
   );

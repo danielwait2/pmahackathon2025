@@ -18,17 +18,19 @@ export function SignupForm() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [formError, setFormError] = useState('');
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
+    setFormError('');
 
     if (password !== confirmPassword) {
-      toast.error('Passwords do not match');
+      setFormError('Passwords do not match.');
       return;
     }
 
     if (password.length < 6) {
-      toast.error('Password must be at least 6 characters');
+      setFormError('Password must be at least 6 characters.');
       return;
     }
 
@@ -48,6 +50,7 @@ export function SignupForm() {
 
       if (error) {
         toast.error(error.message);
+        setFormError(error.message);
       } else {
         toast.success('Account created successfully!');
         const redirectTo = searchParams.get('redirect') || '/dashboard';
@@ -117,6 +120,7 @@ export function SignupForm() {
               minLength={6}
             />
           </div>
+          {formError && <p className="text-sm text-red-600">{formError}</p>}
         </CardContent>
         <CardFooter className="flex flex-col space-y-4">
           <Button type="submit" className="w-full" disabled={loading}>

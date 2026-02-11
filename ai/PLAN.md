@@ -55,31 +55,31 @@ groupsync/
 
 ## Evaluation Criteria Mapping
 
-| Criteria | What Judges Want | How We Demonstrate |
-|---|---|---|
-| 1. Problem Definition & User Understanding | Evidence of real user research | Survey stats (31 responses) on landing page, persona-driven features |
-| 2. Design & UX Quality | Clean, intuitive, professional | shadcn/ui, mobile-responsive, empty states, loading feedback |
-| 3. Technical Considerations & Use of AI | Smart AI use in building AND product | Claude Code for dev, Gemini for in-product task suggestions |
-| 4. Creativity in Solution | Novel approach, not cloning existing tools | Team Agreement "expectation contract", AI project kickoff |
-| 5. Presentation & Communication | Clear story, concise demo | Demo-ready seed data, shareable invite flow, landing page story |
+| Criteria                                   | What Judges Want                           | How We Demonstrate                                                   |
+| ------------------------------------------ | ------------------------------------------ | -------------------------------------------------------------------- |
+| 1. Problem Definition & User Understanding | Evidence of real user research             | Survey stats (31 responses) on landing page, persona-driven features |
+| 2. Design & UX Quality                     | Clean, intuitive, professional             | shadcn/ui, mobile-responsive, empty states, loading feedback         |
+| 3. Technical Considerations & Use of AI    | Smart AI use in building AND product       | Claude Code for dev, Gemini for in-product task suggestions          |
+| 4. Creativity in Solution                  | Novel approach, not cloning existing tools | Team Agreement "expectation contract", AI project kickoff            |
+| 5. Presentation & Communication            | Clear story, concise demo                  | Demo-ready seed data, shareable invite flow, landing page story      |
 
 ---
 
 ## Time Budget (48h Weekend)
 
-| Phase | Est. Hours | Priority | Doc |
-|---|---|---|---|
-| 0. Scaffold | 0.5 | MUST | [phase-0-scaffold.md](phase-0-scaffold.md) |
-| 1. Database & Auth | 1.5 | MUST | [phase-1-database-auth.md](phase-1-database-auth.md) |
-| 2. Landing Page | 1.0 | MUST | [phase-2-landing-page.md](phase-2-landing-page.md) |
-| 3. Dashboard & Project Creation | 2.5 | MUST | [phase-3-dashboard.md](phase-3-dashboard.md) |
-| 4. Project Features (Core) | 4.0 | MUST | [phase-4-project-features.md](phase-4-project-features.md) |
-| 5. Team Agreement | 1.5 | SHOULD | [phase-5-team-agreement.md](phase-5-team-agreement.md) |
-| 6. Polish & Demo Prep | 2.0 | SHOULD | [phase-6-polish.md](phase-6-polish.md) |
-| 7. Deployment | 0.5 | MUST | [phase-7-deployment.md](phase-7-deployment.md) |
-| **Total Build** | **13.5** | | |
-| **Buffer** (bugs, iteration, presentation) | **6.5** | | |
-| **Remaining** (sleep, meals, breaks) | **28** | | |
+| Phase                                      | Est. Hours | Priority | Doc                                                        |
+| ------------------------------------------ | ---------- | -------- | ---------------------------------------------------------- |
+| 0. Scaffold                                | 0.5        | MUST     | [phase-0-scaffold.md](phase-0-scaffold.md)                 |
+| 1. Database & Auth                         | 1.5        | MUST     | [phase-1-database-auth.md](phase-1-database-auth.md)       |
+| 2. Landing Page                            | 1.0        | MUST     | [phase-2-landing-page.md](phase-2-landing-page.md)         |
+| 3. Dashboard & Project Creation            | 2.5        | MUST     | [phase-3-dashboard.md](phase-3-dashboard.md)               |
+| 4. Project Features (Core)                 | 4.0        | MUST     | [phase-4-project-features.md](phase-4-project-features.md) |
+| 5. Team Agreement                          | 1.5        | SHOULD   | [phase-5-team-agreement.md](phase-5-team-agreement.md)     |
+| 6. Polish & Demo Prep                      | 2.0        | SHOULD   | [phase-6-polish.md](phase-6-polish.md)                     |
+| 7. Deployment                              | 0.5        | MUST     | [phase-7-deployment.md](phase-7-deployment.md)             |
+| **Total Build**                            | **13.5**   |          |                                                            |
+| **Buffer** (bugs, iteration, presentation) | **6.5**    |          |                                                            |
+| **Remaining** (sleep, meals, breaks)       | **28**     |          |                                                            |
 
 ---
 
@@ -99,6 +99,7 @@ GEMINI_API_KEY=<your-gemini-api-key>
 Use this to track overall progress. Detailed checklists are in each phase file.
 
 ### Phase 0: Scaffold ✅
+
 - [x] Next.js 14 project initialized with TypeScript
 - [x] Tailwind CSS configured
 - [x] shadcn/ui installed with required components
@@ -107,6 +108,7 @@ Use this to track overall progress. Detailed checklists are in each phase file.
 - [x] `npm run dev` works at localhost:3000
 
 ### Phase 1: Database & Auth ⚠️ (Code Complete - Needs Supabase Setup)
+
 - [ ] Supabase project created, URL and anon key saved (MANUAL STEP REQUIRED)
 - [ ] Database schema created (6 tables + RLS) (MANUAL STEP REQUIRED - SQL in phase-1-database-auth.md)
 - [ ] RLS policies tested in Supabase dashboard (MANUAL STEP REQUIRED)
@@ -117,6 +119,7 @@ Use this to track overall progress. Detailed checklists are in each phase file.
 - [x] AuthProvider context working
 
 ### Phase 2: Landing Page ⚠️ (Code Complete - Needs Manual Responsive QA)
+
 - [x] Hero section with headline and CTAs
 - [x] Problem section with survey stats (39%, 68%)
 - [x] Solution section with 4 feature cards
@@ -126,6 +129,7 @@ Use this to track overall progress. Detailed checklists are in each phase file.
 - [x] CTAs link to auth pages
 
 ### Phase 3: Dashboard & Project Creation ⚠️ (Code Complete - Needs Supabase Trigger + Mobile QA)
+
 - [x] Dashboard page showing user's projects
 - [x] Project cards with name, deadline, members, progress
 - [x] Empty state for no projects
@@ -136,6 +140,7 @@ Use this to track overall progress. Detailed checklists are in each phase file.
 - [x] Edge cases handled (invalid code, already member)
 
 ### Phase 4: Project Features ⚠️ (Code Complete - Needs Manual End-to-End QA)
+
 - [x] Project page with tabbed layout (Overview, Tasks, Availability, Team)
 - [x] Availability grid input (click/drag time slots)
 - [x] Availability saves to Supabase
@@ -148,23 +153,26 @@ Use this to track overall progress. Detailed checklists are in each phase file.
 - [x] Graceful fallback if no API key
 
 ### Phase 5: Team Agreement
-- [ ] Team members list with roles
-- [ ] Team Agreement display card
-- [ ] Owner can edit agreement
-- [ ] Members can "I Agree"
-- [ ] Agreement status tracking (X of Y agreed)
-- [ ] Re-agreement required after owner edits
+
+- [x] Team members list with roles
+- [x] Team Agreement display card
+- [x] Owner can edit agreement
+- [x] Members can "I Agree"
+- [x] Agreement status tracking (X of Y agreed)
+- [x] Re-agreement required after owner edits
 
 ### Phase 6: Polish & Demo Prep
-- [ ] Empty states for all sections
-- [ ] Loading states (skeletons, spinners)
-- [ ] Toast notifications for key actions
-- [ ] Error handling (network, validation, 404)
+
+- [x] Empty states for all sections
+- [x] Loading states (skeletons, spinners)
+- [x] Toast notifications for key actions
+- [x] Error handling (network, validation, 404)
 - [ ] Mobile optimization pass
-- [ ] Demo seed data script
+- [x] Demo seed data script
 - [ ] Full end-to-end flow tested
 
 ### Phase 7: Deployment
+
 - [ ] Vercel deployment successful
 - [ ] Environment variables set in Vercel
 - [ ] Production URL working

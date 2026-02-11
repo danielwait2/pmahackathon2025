@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import { CalendarCheck2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { Availability, AvailabilitySlot, ProjectMember } from '@/types';
@@ -56,6 +57,17 @@ export function AvailabilityTab({ projectId, members, availability, currentUserI
 
   return (
     <div className="space-y-4">
+      {myAvailability.length === 0 && (
+        <div className="rounded-lg border border-dashed border-slate-300 bg-slate-50 p-4">
+          <div className="flex items-start gap-3">
+            <CalendarCheck2 className="mt-0.5 h-5 w-5 text-slate-500" />
+            <div>
+              <p className="text-sm font-semibold text-slate-900">Add your availability to get better meeting suggestions.</p>
+              <p className="text-sm text-slate-600">Fill in your schedule below, then click save.</p>
+            </div>
+          </div>
+        </div>
+      )}
       <div className="grid gap-4 xl:grid-cols-2">
         <AvailabilityGrid initialSlots={myAvailability} onSave={saveAvailability} saving={saving} />
         <TeamAvailability members={members} availability={availabilityRecords} />

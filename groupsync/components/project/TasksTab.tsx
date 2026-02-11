@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
@@ -75,6 +75,13 @@ export function TasksTab({ project, members, initialTasks }: TasksTabProps) {
     const nextStatus: Task['status'] = task.status === 'done' ? 'todo' : 'done';
     await handleStatusChange(task.id, nextStatus);
   };
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    if (window.innerWidth < 768) {
+      setView('list');
+    }
+  }, []);
 
   return (
     <div className="space-y-4">

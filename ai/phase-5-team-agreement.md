@@ -31,6 +31,7 @@ Build the Team Agreement "expectation contract" feature — the differentiator t
 Two main sections:
 
 **Section 1: Team Members**
+
 - List of members with:
   - Avatar (or initials circle if no avatar)
   - Name
@@ -40,6 +41,7 @@ Two main sections:
 - Invite link at bottom: "Invite more teammates" with copy button
 
 **Section 2: Team Agreement**
+
 - `<TeamAgreement />` component (see below)
 - If no agreement exists yet:
   - Owner sees: "Set expectations for your team" + "Create Agreement" button
@@ -53,12 +55,12 @@ Card that shows the current agreement in a clean, readable format:
 
 **Agreement fields displayed as key-value rows:**
 
-| Label | Value | Icon |
-|---|---|---|
-| Response Time | "Respond within 24 hours" | Clock icon |
-| Meeting Frequency | "Meet twice a week" | Calendar icon |
-| Communication | "Communicate via Discord" | MessageSquare icon |
-| Quality Standards | Custom text from owner | CheckCircle icon |
+| Label             | Value                     | Icon               |
+| ----------------- | ------------------------- | ------------------ |
+| Response Time     | "Respond within 24 hours" | Clock icon         |
+| Meeting Frequency | "Meet twice a week"       | Calendar icon      |
+| Communication     | "Communicate via Discord" | MessageSquare icon |
+| Quality Standards | Custom text from owner    | CheckCircle icon   |
 
 **Agreement status section:**
 
@@ -72,6 +74,7 @@ Show progress toward full team alignment:
 - **If not all agreed:** amber badge "X of Y Aligned"
 
 **Actions:**
+
 - **Owner sees:** "Edit Agreement" button → opens `<TeamAgreementEditor />`
 - **Members who haven't agreed see:** "I Agree to These Expectations" button
 - **Members who already agreed see:** Checkmark + "You've agreed" (disabled state)
@@ -108,10 +111,12 @@ Owner-only modal for creating/editing the agreement:
    - Max 500 characters
 
 **Buttons:**
+
 - "Save Agreement" — saves/updates in Supabase
 - "Cancel" — closes without saving
 
 **Important behavior on save:**
+
 - If this is an **edit** (agreement already exists):
   - Clear the `agreed_by` array (reset all agreements)
   - Show confirmation: "Saving changes will require all team members to re-agree. Continue?"
@@ -130,9 +135,9 @@ async function handleAgree(userId: string, agreement: TeamAgreement) {
   const updatedAgreedBy = [...agreement.agreed_by, userId];
 
   await supabase
-    .from('team_agreements')
+    .from("team_agreements")
     .update({ agreed_by: updatedAgreedBy })
-    .eq('id', agreement.id);
+    .eq("id", agreement.id);
 
   // Refresh data
   // Toast: "Thanks! You've agreed to the team expectations."
@@ -146,17 +151,15 @@ async function handleSaveAgreement(data: Partial<TeamAgreement>) {
   // If editing existing: clear agreed_by and add owner
   const agreed_by = [currentUser.id]; // Owner auto-agrees
 
-  await supabase
-    .from('team_agreements')
-    .upsert({
-      project_id: projectId,
-      response_time_hours: data.response_time_hours,
-      meeting_frequency: data.meeting_frequency,
-      communication_channel: data.communication_channel,
-      quality_standards: data.quality_standards,
-      agreed_by: agreed_by,
-      updated_at: new Date().toISOString(),
-    });
+  await supabase.from("team_agreements").upsert({
+    project_id: projectId,
+    response_time_hours: data.response_time_hours,
+    meeting_frequency: data.meeting_frequency,
+    communication_channel: data.communication_channel,
+    quality_standards: data.quality_standards,
+    agreed_by: agreed_by,
+    updated_at: new Date().toISOString(),
+  });
 }
 ```
 
@@ -167,18 +170,24 @@ If time allows, use Supabase Realtime to update agreement status live:
 ```typescript
 useEffect(() => {
   const channel = supabase
-    .channel('agreement-changes')
-    .on('postgres_changes', {
-      event: 'UPDATE',
-      schema: 'public',
-      table: 'team_agreements',
-      filter: `project_id=eq.${projectId}`,
-    }, (payload) => {
-      setAgreement(payload.new as TeamAgreement);
-    })
+    .channel("agreement-changes")
+    .on(
+      "postgres_changes",
+      {
+        event: "UPDATE",
+        schema: "public",
+        table: "team_agreements",
+        filter: `project_id=eq.${projectId}`,
+      },
+      (payload) => {
+        setAgreement(payload.new as TeamAgreement);
+      },
+    )
     .subscribe();
 
-  return () => { supabase.removeChannel(channel); };
+  return () => {
+    supabase.removeChannel(channel);
+  };
 }, [projectId]);
 ```
 
@@ -188,28 +197,28 @@ This means when one member clicks "I Agree", other members see the update immedi
 
 ## Checklist
 
-- [ ] `components/project/TeamTab.tsx` — layout with members list + agreement section
-- [ ] Team members list: avatar, name, role badge, join date
-- [ ] Owner displayed first in member list
-- [ ] Invite link shown at bottom of members list
-- [ ] `components/project/TeamAgreement.tsx` — agreement display card
-- [ ] Agreement shows: response time, meeting frequency, communication, quality standards
-- [ ] Agreement status: progress bar showing X of Y members agreed
-- [ ] Per-member agreement status: checkmark or empty circle
-- [ ] "Team Aligned" green badge when all members agreed
-- [ ] Owner sees "Edit Agreement" button
-- [ ] Non-agreed members see "I Agree" button
-- [ ] Already-agreed members see disabled "You've agreed" state
-- [ ] `components/project/TeamAgreementEditor.tsx` — owner-only editor dialog
-- [ ] Editor: response time dropdown
-- [ ] Editor: meeting frequency dropdown
-- [ ] Editor: communication channel dropdown + custom input for "Other"
-- [ ] Editor: quality standards textarea
-- [ ] Save creates or updates agreement in Supabase
-- [ ] Edit clears agreed_by (requires re-agreement) with confirmation
-- [ ] Create auto-adds owner to agreed_by
-- [ ] "I Agree" adds user to agreed_by array
-- [ ] Empty state: owner prompted to create, members see "waiting" message
+- [x] `components/project/TeamTab.tsx` — layout with members list + agreement section
+- [x] Team members list: avatar, name, role badge, join date
+- [x] Owner displayed first in member list
+- [x] Invite link shown at bottom of members list
+- [x] `components/project/TeamAgreement.tsx` — agreement display card
+- [x] Agreement shows: response time, meeting frequency, communication, quality standards
+- [x] Agreement status: progress bar showing X of Y members agreed
+- [x] Per-member agreement status: checkmark or empty circle
+- [x] "Team Aligned" green badge when all members agreed
+- [x] Owner sees "Edit Agreement" button
+- [x] Non-agreed members see "I Agree" button
+- [x] Already-agreed members see disabled "You've agreed" state
+- [x] `components/project/TeamAgreementEditor.tsx` — owner-only editor dialog
+- [x] Editor: response time dropdown
+- [x] Editor: meeting frequency dropdown
+- [x] Editor: communication channel dropdown + custom input for "Other"
+- [x] Editor: quality standards textarea
+- [x] Save creates or updates agreement in Supabase
+- [x] Edit clears agreed_by (requires re-agreement) with confirmation
+- [x] Create auto-adds owner to agreed_by
+- [x] "I Agree" adds user to agreed_by array
+- [x] Empty state: owner prompted to create, members see "waiting" message
 - [ ] (Optional) Supabase Realtime for live agreement updates
 
 ---

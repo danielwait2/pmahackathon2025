@@ -70,7 +70,7 @@ export function TaskSuggestionsModal({
       }
 
       onTasksAdded(data as Task[]);
-      toast.success(indices.length === 1 ? 'Task added' : `${indices.length} tasks added`);
+      toast.success(indices.length === 1 ? 'Added 1 task to your board.' : `Added ${indices.length} tasks to your board.`);
     } catch {
       toast.error('Failed to add suggestions');
     } finally {

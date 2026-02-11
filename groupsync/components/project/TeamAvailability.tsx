@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
+import { Users } from 'lucide-react';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Availability, ProjectMember } from '@/types';
@@ -35,6 +36,22 @@ export function TeamAvailability({ members, availability }: TeamAvailabilityProp
       })),
     [availability, members]
   );
+  const submittedCount = memberMap.filter((member) => member.slots.length > 0).length;
+
+  if (submittedCount === 0) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Team Availability</CardTitle>
+        </CardHeader>
+        <CardContent className="py-10 text-center">
+          <Users className="mx-auto h-12 w-12 text-slate-400" />
+          <p className="mt-3 text-sm font-semibold text-slate-900">No one has submitted availability yet.</p>
+          <p className="mt-1 text-sm text-slate-600">You can be the first by filling in your schedule.</p>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card>

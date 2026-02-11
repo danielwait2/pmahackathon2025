@@ -5,6 +5,8 @@ export interface Profile {
   created_at: string;
 }
 
+export type ProfilePreview = Pick<Profile, 'id' | 'name' | 'avatar_url'>;
+
 export interface Project {
   id: string;
   name: string;
@@ -21,7 +23,7 @@ export interface ProjectMember {
   user_id: string;
   role: 'owner' | 'member';
   joined_at: string;
-  profile?: Profile;
+  profile?: ProfilePreview;
 }
 
 export interface AvailabilitySlot {

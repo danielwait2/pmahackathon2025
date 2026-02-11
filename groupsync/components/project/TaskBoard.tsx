@@ -2,6 +2,7 @@
 
 import { DragEndEvent, DndContext, PointerSensor, useDroppable, useSensor, useSensors } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
+import { ClipboardList } from 'lucide-react';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -63,6 +64,21 @@ function BoardColumn({
 
 export function TaskBoard({ tasks, assigneeMap, onStatusChange, onOpenTask, onQuickAdd }: TaskBoardProps) {
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }));
+
+  if (tasks.length === 0) {
+    return (
+      <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50 px-6 py-10 text-center">
+        <ClipboardList className="mx-auto h-12 w-12 text-slate-400" />
+        <h3 className="mt-3 text-xl font-bold text-slate-900">No tasks yet</h3>
+        <p className="mt-2 text-sm text-slate-600">
+          Add your first task or use AI suggestions to generate a project plan.
+        </p>
+        <Button className="mt-5" onClick={onQuickAdd}>
+          Add Task
+        </Button>
+      </div>
+    );
+  }
 
   const onDragEnd = async (event: DragEndEvent) => {
     const activeId = String(event.active.id);

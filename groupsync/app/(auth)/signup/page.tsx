@@ -1,3 +1,4 @@
+import { Suspense } from 'react';
 import { SignupForm } from '@/components/auth/SignupForm';
 
 export default function SignupPage() {
@@ -8,7 +9,9 @@ export default function SignupPage() {
           <h1 className="text-4xl font-bold text-blue-600 mb-2">GroupSync</h1>
           <p className="text-muted-foreground">Start collaborating with your team</p>
         </div>
-        <SignupForm />
+        <Suspense fallback={null}>
+          <SignupForm />
+        </Suspense>
       </div>
     </div>
   );

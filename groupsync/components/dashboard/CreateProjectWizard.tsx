@@ -149,7 +149,7 @@ export function CreateProjectWizard({ open, onOpenChange }: CreateProjectWizardP
 
       setCreatedProject(project);
       setStep(2);
-      toast.success('Project created. Set team expectations next.');
+      toast.success('Project created! Share the invite code with your team.');
     } catch {
       toast.error('Unable to create project right now.');
     } finally {
@@ -196,13 +196,13 @@ export function CreateProjectWizard({ open, onOpenChange }: CreateProjectWizardP
     if (!createdProject) return;
     const inviteUrl = `${window.location.origin}/join/${createdProject.invite_code}`;
     await navigator.clipboard.writeText(inviteUrl);
-    toast.success('Link copied!');
+    toast.success('Invite link copied to clipboard!');
   };
 
   const copyInviteCode = async () => {
     if (!createdProject) return;
     await navigator.clipboard.writeText(createdProject.invite_code);
-    toast.success('Code copied!');
+    toast.success('Invite code copied!');
   };
 
   const done = () => {

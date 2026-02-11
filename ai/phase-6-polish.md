@@ -19,16 +19,17 @@ Add empty states, loading states, error handling, mobile optimization, and creat
 
 Create helpful, encouraging empty states for every section that could be empty:
 
-| Location | When Empty | Message | CTA |
-|---|---|---|---|
-| Dashboard | No projects | "No projects yet. Create your first project or join one with an invite code." | "Create Project" + "Join Project" buttons |
-| Task board | No tasks | "No tasks yet. Add your first task or let AI suggest some." | "Add Task" + "Suggest with AI" buttons |
-| Availability (own) | Not submitted | "Add your availability so your team can find meeting times." | Grid ready to fill in |
-| Availability (team) | No one submitted | "No one has submitted availability yet. You can be the first!" | Link to own input |
-| Team Agreement | Not created | Owner: "Set expectations for your team" / Member: "Waiting for your team lead to set expectations" | Owner: "Create Agreement" button |
-| Meeting Finder | No overlap | "No times where everyone is free. Showing best partial matches." | Show partial results |
+| Location            | When Empty       | Message                                                                                            | CTA                                       |
+| ------------------- | ---------------- | -------------------------------------------------------------------------------------------------- | ----------------------------------------- |
+| Dashboard           | No projects      | "No projects yet. Create your first project or join one with an invite code."                      | "Create Project" + "Join Project" buttons |
+| Task board          | No tasks         | "No tasks yet. Add your first task or let AI suggest some."                                        | "Add Task" + "Suggest with AI" buttons    |
+| Availability (own)  | Not submitted    | "Add your availability so your team can find meeting times."                                       | Grid ready to fill in                     |
+| Availability (team) | No one submitted | "No one has submitted availability yet. You can be the first!"                                     | Link to own input                         |
+| Team Agreement      | Not created      | Owner: "Set expectations for your team" / Member: "Waiting for your team lead to set expectations" | Owner: "Create Agreement" button          |
+| Meeting Finder      | No overlap       | "No times where everyone is free. Showing best partial matches."                                   | Show partial results                      |
 
 Design:
+
 - Use Lucide icons at large size (48-64px) as illustration
 - Muted text color for description
 - Prominent CTA button(s)
@@ -38,18 +39,19 @@ Design:
 
 Add skeleton loaders and spinners to prevent layout shift:
 
-| Component | Loading Pattern |
-|---|---|
+| Component              | Loading Pattern                                             |
+| ---------------------- | ----------------------------------------------------------- |
 | Dashboard project list | Skeleton cards (3 placeholder cards with pulsing animation) |
-| Project page | Skeleton for header + tab content |
-| Availability grid | Grid with pulsing cells |
-| Task board | Skeleton columns with placeholder cards |
-| AI suggestions | Spinner + "Generating suggestions..." text |
-| Any form submission | Button shows spinner, text changes to "Saving..." |
+| Project page           | Skeleton for header + tab content                           |
+| Availability grid      | Grid with pulsing cells                                     |
+| Task board             | Skeleton columns with placeholder cards                     |
+| AI suggestions         | Spinner + "Generating suggestions..." text                  |
+| Any form submission    | Button shows spinner, text changes to "Saving..."           |
 
 Use shadcn `Skeleton` component for consistent loading patterns.
 
 **Optimistic updates for snappy feel:**
+
 - Task drag-and-drop: update UI immediately, sync to Supabase in background
 - "I Agree" button: show checkmark immediately, sync in background
 - Task status checkbox: toggle immediately, sync in background
@@ -59,41 +61,45 @@ Use shadcn `Skeleton` component for consistent loading patterns.
 
 Add toast feedback for all key actions using shadcn `toast`:
 
-| Action | Toast Message | Type |
-|---|---|---|
-| Project created | "Project created! Share the invite code with your team." | success |
-| Invite link copied | "Invite link copied to clipboard!" | success |
-| Joined project | "Welcome to {project name}!" | success |
-| Availability saved | "Availability saved!" | success |
-| Task added | "Task added!" | success |
-| Task updated | "Task updated." | success |
-| Task deleted | "Task deleted." | info |
-| AI tasks added | "Added {N} tasks to your board." | success |
-| Agreement created | "Team agreement created!" | success |
-| Agreement updated | "Agreement updated. Team needs to re-agree." | info |
-| Agreed to agreement | "Thanks! You've agreed to the team expectations." | success |
-| Network error | "Something went wrong. Please try again." | error |
-| Invalid invite code | "Invalid invite code. Check with your team." | error |
+| Action              | Toast Message                                            | Type    |
+| ------------------- | -------------------------------------------------------- | ------- |
+| Project created     | "Project created! Share the invite code with your team." | success |
+| Invite link copied  | "Invite link copied to clipboard!"                       | success |
+| Joined project      | "Welcome to {project name}!"                             | success |
+| Availability saved  | "Availability saved!"                                    | success |
+| Task added          | "Task added!"                                            | success |
+| Task updated        | "Task updated."                                          | success |
+| Task deleted        | "Task deleted."                                          | info    |
+| AI tasks added      | "Added {N} tasks to your board."                         | success |
+| Agreement created   | "Team agreement created!"                                | success |
+| Agreement updated   | "Agreement updated. Team needs to re-agree."             | info    |
+| Agreed to agreement | "Thanks! You've agreed to the team expectations."        | success |
+| Network error       | "Something went wrong. Please try again."                | error   |
+| Invalid invite code | "Invalid invite code. Check with your team."             | error   |
 
 ### 6.4 Error Handling
 
 **Network errors:**
+
 - Wrap Supabase calls in try/catch
 - Show toast with generic message
 - Log detailed error to console (for debugging)
 - Don't crash the page — show error state inline
 
 **Form validation:**
+
 - Inline error messages under inputs (red text)
 - Disable submit button until form is valid
 - Required field indicators (asterisk or "Required" label)
 
 **404 / Not Found:**
+
 - Invalid project ID → "This project doesn't exist or you don't have access."
 - Invalid invite code → "This invite code doesn't exist."
 - Show a link back to dashboard
 
 **Auth errors:**
+
 - Session expired → redirect to login with toast "Session expired. Please log in again."
 
 ### 6.5 Mobile Optimization Pass
@@ -101,27 +107,33 @@ Add toast feedback for all key actions using shadcn `toast`:
 Test everything at 375px width (iPhone SE) and fix issues:
 
 **Navigation:**
+
 - Dashboard header: collapse to icon-only or hamburger on mobile
 - Project tabs: horizontal scroll (swipeable) or use a dropdown select
 
 **Availability grid:**
+
 - Switch to list-based input on screens < 768px
 - List view: day name → add time range → start/end dropdowns
 
 **Task board:**
+
 - Switch to list view by default on mobile (< 768px)
 - Or stack columns vertically with collapsible sections
 - Ensure drag handles have large touch targets (44px min)
 
 **Modals:**
+
 - On mobile: make modals full-screen (bottom sheet pattern)
 - Ensure inputs aren't covered by keyboard on iOS
 
 **Typography:**
+
 - Minimum 16px for body text (prevents iOS auto-zoom on focus)
 - Tap targets: minimum 44x44px
 
 **Common mobile issues to check:**
+
 - No horizontal scroll on any page
 - Buttons not cut off at screen edges
 - Text not overflowing containers
@@ -138,7 +150,8 @@ Create a script that can be run to set up a realistic demo state:
 
 const demoProject = {
   name: "CS 401 Final Project — Research Paper",
-  description: "Group research paper on machine learning applications in healthcare. 15 pages, APA format, due end of semester.",
+  description:
+    "Group research paper on machine learning applications in healthcare. 15 pages, APA format, due end of semester.",
   deadline: "2025-04-15", // Adjust to ~2 weeks from hackathon date
 };
 
@@ -150,14 +163,38 @@ const demoMembers = [
 ];
 
 const demoTasks = [
-  { title: "Research ML healthcare papers", status: "done", assigned_to: "Alex Chen" },
-  { title: "Write literature review section", status: "done", assigned_to: "Jordan Kim" },
-  { title: "Collect dataset examples", status: "in_progress", assigned_to: "Sam Patel" },
-  { title: "Draft methodology section", status: "in_progress", assigned_to: "Alex Chen" },
-  { title: "Create data visualizations", status: "todo", assigned_to: "Taylor Rodriguez" },
+  {
+    title: "Research ML healthcare papers",
+    status: "done",
+    assigned_to: "Alex Chen",
+  },
+  {
+    title: "Write literature review section",
+    status: "done",
+    assigned_to: "Jordan Kim",
+  },
+  {
+    title: "Collect dataset examples",
+    status: "in_progress",
+    assigned_to: "Sam Patel",
+  },
+  {
+    title: "Draft methodology section",
+    status: "in_progress",
+    assigned_to: "Alex Chen",
+  },
+  {
+    title: "Create data visualizations",
+    status: "todo",
+    assigned_to: "Taylor Rodriguez",
+  },
   { title: "Write results and analysis", status: "todo", assigned_to: null },
   { title: "Peer review all sections", status: "todo", assigned_to: null },
-  { title: "Final formatting and submission", status: "todo", assigned_to: null },
+  {
+    title: "Final formatting and submission",
+    status: "todo",
+    assigned_to: null,
+  },
 ];
 
 const demoAvailability = {
@@ -191,12 +228,14 @@ const demoAgreement = {
   response_time_hours: 24,
   meeting_frequency: "Twice a week",
   communication_channel: "Discord",
-  quality_standards: "Review each other's sections before merging. Cite all sources in APA format. Proofread for grammar and clarity.",
+  quality_standards:
+    "Review each other's sections before merging. Cite all sources in APA format. Proofread for grammar and clarity.",
   agreed_by: ["Alex Chen", "Jordan Kim", "Sam Patel"], // Taylor hasn't agreed yet
 };
 ```
 
 **Note:** This script needs real Supabase user IDs. Options:
+
 1. Create test accounts first, then use their IDs
 2. Make the script create accounts via Supabase admin API
 3. Manually insert via Supabase dashboard SQL editor
@@ -228,50 +267,56 @@ Run through the complete demo flow manually:
 ## Checklist
 
 ### Empty States
-- [ ] Dashboard empty state (no projects)
-- [ ] Task board empty state (no tasks)
-- [ ] Availability empty state (not submitted)
-- [ ] Team availability empty state (no one submitted)
-- [ ] Team agreement empty state (not created)
-- [ ] Meeting finder empty/no-overlap state
+
+- [x] Dashboard empty state (no projects)
+- [x] Task board empty state (no tasks)
+- [x] Availability empty state (not submitted)
+- [x] Team availability empty state (no one submitted)
+- [x] Team agreement empty state (not created)
+- [x] Meeting finder empty/no-overlap state
 
 ### Loading States
-- [ ] Dashboard: skeleton project cards
-- [ ] Project page: skeleton content
+
+- [x] Dashboard: skeleton project cards
+- [x] Project page: skeleton content
 - [ ] Task board: skeleton cards
-- [ ] AI suggestions: spinner + text
-- [ ] Form buttons show loading state on submit
+- [x] AI suggestions: spinner + text
+- [x] Form buttons show loading state on submit
 
 ### Toasts & Feedback
-- [ ] Project created toast
-- [ ] Invite link copied toast
-- [ ] Joined project toast
-- [ ] Availability saved toast
-- [ ] Task added/updated/deleted toasts
-- [ ] AI tasks added toast
-- [ ] Agreement created/updated toasts
-- [ ] Error toasts for failures
+
+- [x] Project created toast
+- [x] Invite link copied toast
+- [x] Joined project toast
+- [x] Availability saved toast
+- [x] Task added/updated/deleted toasts
+- [x] AI tasks added toast
+- [x] Agreement created/updated toasts
+- [x] Error toasts for failures
 
 ### Error Handling
-- [ ] Network errors caught and displayed
-- [ ] Form validation with inline errors
-- [ ] 404 page for invalid project/invite
-- [ ] Auth session expiry handled
+
+- [x] Network errors caught and displayed
+- [x] Form validation with inline errors
+- [x] 404 page for invalid project/invite
+- [x] Auth session expiry handled
 
 ### Mobile
+
 - [ ] No horizontal scroll on any page (375px)
-- [ ] Navigation usable on mobile
-- [ ] Availability input works on mobile (list view)
-- [ ] Tasks readable on mobile (list view default)
-- [ ] Modals usable on mobile (full-screen)
+- [x] Navigation usable on mobile
+- [x] Availability input works on mobile (list view)
+- [x] Tasks readable on mobile (list view default)
+- [x] Modals usable on mobile (full-screen)
 - [ ] Text minimum 16px, tap targets minimum 44px
 
 ### Demo Prep
-- [ ] Seed data script written
-- [ ] Demo data inserted (or ready to insert)
+
+- [x] Seed data script written
+- [x] Demo data inserted (or ready to insert)
 - [ ] Full end-to-end flow tested
 - [ ] No console errors in any flow
-- [ ] Demo flow path documented (for presentation)
+- [x] Demo flow path documented (for presentation)
 
 ---
 

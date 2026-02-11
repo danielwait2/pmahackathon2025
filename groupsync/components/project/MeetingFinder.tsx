@@ -59,6 +59,7 @@ function toSuggestion(candidate: Candidate, members: MeetingFinderProps['members
 export function MeetingFinder({ members, availability, isOwner }: MeetingFinderProps) {
   const [generated, setGenerated] = useState<MeetingSuggestion[]>([]);
   const [relaxed, setRelaxed] = useState(false);
+  const [hasRun, setHasRun] = useState(false);
 
   const memberSlots = useMemo(
     () =>
@@ -70,6 +71,7 @@ export function MeetingFinder({ members, availability, isOwner }: MeetingFinderP
   );
 
   const findSuggestions = () => {
+    setHasRun(true);
     const candidates: Candidate[] = [];
 
     const targetCounts = [members.length, Math.max(members.length - 1, 1)];
@@ -141,7 +143,12 @@ export function MeetingFinder({ members, availability, isOwner }: MeetingFinderP
         <Button onClick={findSuggestions}>Find Best Meeting Times</Button>
       </CardHeader>
       <CardContent className="space-y-3">
-        {generated.length === 0 && <p className="text-sm text-slate-500">Run the finder to get top 5 meeting suggestions.</p>}
+        {!hasRun && generated.length === 0 && (
+          <p className="text-sm text-slate-500">Run the finder to get top 5 meeting suggestions.</p>
+        )}
+        {hasRun && generated.length === 0 && (
+          <p className="text-sm text-amber-700">No overlap found yet. Add more availability and try again.</p>
+        )}
         {relaxed && generated.length > 0 && (
           <p className="text-sm text-amber-700">No times where everyone is free. Showing best options with all but one member.</p>
         )}
