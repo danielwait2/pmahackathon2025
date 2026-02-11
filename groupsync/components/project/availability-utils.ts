@@ -215,3 +215,47 @@ export function gridToSlots(grid: boolean[][]): TimeSlot[] {
 
   return slots;
 }
+
+/**
+ * Get the date for a specific day of the current week (Monday-Sunday)
+ * @param dayIndex 0 = Monday, 1 = Tuesday, ..., 6 = Sunday
+ */
+export function getWeekDate(dayIndex: number): Date {
+  const today = new Date();
+  const currentDay = today.getDay(); // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
+
+  // Calculate days to Monday (start of week)
+  const daysFromMonday = currentDay === 0 ? -6 : 1 - currentDay;
+
+  // Get Monday of current week
+  const monday = new Date(today);
+  monday.setDate(today.getDate() + daysFromMonday);
+
+  // Get the target day
+  const targetDate = new Date(monday);
+  targetDate.setDate(monday.getDate() + dayIndex);
+
+  return targetDate;
+}
+
+/**
+ * Format a date as "M/D" (e.g., "2/10")
+ */
+export function formatShortDate(date: Date): string {
+  return `${date.getMonth() + 1}/${date.getDate()}`;
+}
+
+/**
+ * Get formatted day header with date (e.g., "Mon 2/10")
+ * @param dayIndex 0 = Sunday, 1 = Monday, ..., 6 = Saturday (DAYS_OF_WEEK index)
+ */
+export function getDayHeaderWithDate(dayIndex: number): string {
+  const dayName = DAYS_OF_WEEK[dayIndex];
+
+  // Convert DAYS_OF_WEEK index (0=Sunday) to week index (0=Monday)
+  const weekDayIndex = dayIndex === 0 ? 6 : dayIndex - 1;
+  const date = getWeekDate(weekDayIndex);
+  const shortDate = formatShortDate(date);
+
+  return `${dayName.substring(0, 3)} ${shortDate}`;
+}

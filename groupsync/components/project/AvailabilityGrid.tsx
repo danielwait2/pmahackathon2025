@@ -9,6 +9,7 @@ import {
   createAvailabilityGrid,
   gridToSlots,
   formatHour,
+  getDayHeaderWithDate,
   type TimeSlot,
 } from './availability-utils';
 
@@ -141,7 +142,7 @@ export function AvailabilityGrid({ slots, onChange, readonly = false }: Availabi
               <div className="bg-slate-50 border-b border-r border-slate-200 p-2 text-xs font-medium text-slate-600">Time</div>
               {DAYS_OF_WEEK.map((day, idx) => (
                 <div key={day} className={`bg-slate-50 border-b border-slate-200 p-2 text-xs font-medium text-center text-slate-900 ${idx < 6 ? 'border-r' : ''}`}>
-                  {day.substring(0, 3)}
+                  {getDayHeaderWithDate(idx)}
                 </div>
               ))}
             </div>

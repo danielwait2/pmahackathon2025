@@ -22,6 +22,7 @@ interface ProjectTabsProps {
   projectId: string;
   currentUserId: string;
   currentMemberId: string;
+  actualUserId: string | null;
   isOwner: boolean;
   tasks: ProjectTaskItem[];
   members: TeamMemberItem[];
@@ -34,6 +35,7 @@ export function ProjectTabs({
   projectId,
   currentUserId,
   currentMemberId,
+  actualUserId,
   isOwner,
   tasks,
   members,
@@ -86,7 +88,7 @@ export function ProjectTabs({
       <TabsContent value="availability">
         <AvailabilityTab
           projectId={projectId}
-          currentUserId={currentUserId}
+          currentUserId={actualUserId}
           initialSlots={currentUserAvailability}
           teamAvailabilities={availabilities}
           onSave={handleSaveAvailability}

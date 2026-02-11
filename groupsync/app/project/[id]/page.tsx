@@ -70,6 +70,7 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
           projectId={project.id}
           currentUserId={member.userId || member.memberId}
           currentMemberId={member.memberId}
+          actualUserId={member.userId}
           isOwner={!member.isGuest && project.createdById === member.userId}
           tasks={project.tasks.map((task) => ({
             id: task.id,

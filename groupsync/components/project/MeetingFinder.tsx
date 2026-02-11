@@ -1,28 +1,34 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { Calendar, Clock, Users } from 'lucide-react';
+import { Calendar, Clock, Users, Plus } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { ScheduleMeetingModal } from './ScheduleMeetingModal';
 import {
   findCommonAvailability,
   suggestMeetingTimes,
   formatTimeSlot,
   formatHour,
   DAYS_OF_WEEK,
+  getWeekDate,
   type UserAvailability,
   type TimeSlot,
 } from './availability-utils';
 
 interface MeetingFinderProps {
+  projectId: string;
   availabilities: UserAvailability[];
   minDuration?: number;
+  onMeetingScheduled?: () => void;
 }
 
-export function MeetingFinder({ availabilities, minDuration = 1 }: MeetingFinderProps) {
+export function MeetingFinder({ projectId, availabilities, minDuration = 1, onMeetingScheduled }: MeetingFinderProps) {
   const [selectedDuration, setSelectedDuration] = useState(minDuration);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedSlot, setSelectedSlot] = useState<TimeSlot | null>(null);
 
   // Find all common availability slots
   const commonSlots = useMemo(() => {
@@ -47,6 +53,31 @@ export function MeetingFinder({ availabilities, minDuration = 1 }: MeetingFinder
   }, [suggestedTimes]);
 
   const totalParticipants = availabilities.length;
+
+  const handleScheduleClick = (slot: TimeSlot) => {
+    setSelectedSlot(slot);
+    setIsModalOpen(true);
+  };
+
+  const handleMeetingSuccess = () => {
+    if (onMeetingScheduled) {
+      onMeetingScheduled();
+    }
+  };
+
+  const getSlotDateString = (dayIndex: number): string => {
+    // dayIndex is 0=Sunday, 1=Monday, etc. from DAYS_OF_WEEK
+    // Convert to week day index (0=Monday)
+    const weekDayIndex = dayIndex === 0 ? 6 : dayIndex - 1;
+    const date = getWeekDate(weekDayIndex);
+    return date.toISOString().split('T')[0]; // YYYY-MM-DD
+  };
+
+  const getSlotTimeString = (hour: number): string => {
+    const wholeHour = Math.floor(hour);
+    const minutes = (hour % 1) * 60;
+    return `${String(wholeHour).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+  };
 
   if (totalParticipants === 0) {
     return (
@@ -141,9 +172,20 @@ export function MeetingFinder({ availabilities, minDuration = 1 }: MeetingFinder
                                   {duration} hour{duration !== 1 ? 's' : ''}
                                 </div>
                               </div>
-                              <Badge variant="outline" className="text-xs">
-                                All available
-                              </Badge>
+                              <div className="flex flex-col gap-2 items-end">
+                                <Badge variant="outline" className="text-xs">
+                                  All available
+                                </Badge>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => handleScheduleClick(slot)}
+                                  className="h-7 text-xs"
+                                >
+                                  <Plus className="h-3 w-3 mr-1" />
+                                  Schedule
+                                </Button>
+                              </div>
                             </div>
                           </div>
                         );
@@ -172,6 +214,19 @@ export function MeetingFinder({ availabilities, minDuration = 1 }: MeetingFinder
             </div>
           </CardContent>
         </Card>
+      )}
+
+      {/* Schedule Meeting Modal */}
+      {selectedSlot && (
+        <ScheduleMeetingModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          onSuccess={handleMeetingSuccess}
+          projectId={projectId}
+          prefilledDate={getSlotDateString(selectedSlot.day)}
+          prefilledStartTime={getSlotTimeString(selectedSlot.startHour)}
+          prefilledEndTime={getSlotTimeString(selectedSlot.endHour)}
+        />
       )}
     </div>
   );

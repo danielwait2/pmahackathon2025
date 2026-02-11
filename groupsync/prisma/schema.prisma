@@ -19,6 +19,7 @@ model User {
   projectMembers    ProjectMember[]
   availability      Availability[]
   assignedTasks     Task[]
+  createdMeetings   Meeting[]
 
   @@map("users")
 }
@@ -38,6 +39,7 @@ model Project {
   availability    Availability[]
   tasks           Task[]
   teamAgreement   TeamAgreement?
+  meetings        Meeting[]
 
   @@map("projects")
 }
@@ -105,4 +107,20 @@ model TeamAgreement {
   project              Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   @@map("team_agreements")
+}
+
+model Meeting {
+  id          String   @id @default(uuid())
+  projectId   String   @map("project_id")
+  title       String
+  date        String   // YYYY-MM-DD
+  startTime   String   // HH:mm
+  endTime     String   // HH:mm
+  createdById String?  @map("created_by")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  createdBy   User?    @relation(fields: [createdById], references: [id], onDelete: SetNull)
+
+  @@map("meetings")
 }
