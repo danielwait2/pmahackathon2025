@@ -25,7 +25,17 @@ export async function POST(request: Request) {
     });
 
     return NextResponse.json({ user: { id: user.id, name: user.name, email: user.email } }, { status: 201 });
-  } catch {
+  } catch (error) {
+    console.error('Signup API error:', error);
+
+    const message = error instanceof Error ? error.message : '';
+    if (message.includes('DATABASE_URL')) {
+      return NextResponse.json(
+        { error: 'Server misconfiguration: DATABASE_URL is missing. Configure .env.local and retry.' },
+        { status: 500 },
+      );
+    }
+
     return NextResponse.json({ error: 'An unexpected error occurred' }, { status: 500 });
   }
 }

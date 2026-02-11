@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { signIn } from 'next-auth/react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
@@ -12,6 +12,7 @@ import { toast } from 'sonner';
 
 export function SignupForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -62,7 +63,8 @@ export function SignupForm() {
         router.push('/login');
       } else {
         toast.success('Account created successfully!');
-        router.push('/dashboard');
+        const redirectTo = searchParams.get('redirect') || '/dashboard';
+        router.push(redirectTo);
         router.refresh();
       }
     } catch {

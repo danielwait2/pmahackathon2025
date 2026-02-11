@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
+
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 
@@ -38,13 +39,29 @@ export async function POST(request: Request) {
     return NextResponse.json({ alreadyMember: true, projectId: project.id, projectName: project.name });
   }
 
-  await prisma.projectMember.create({
-    data: {
-      projectId: project.id,
-      userId: session.user.id,
-      role: 'member',
-    },
-  });
+  await prisma.$transaction([
+    prisma.projectMember.create({
+      data: {
+        projectId: project.id,
+        userId: session.user.id,
+        role: 'member',
+      },
+    }),
+    prisma.availability.upsert({
+      where: {
+        projectId_userId: {
+          projectId: project.id,
+          userId: session.user.id,
+        },
+      },
+      create: {
+        projectId: project.id,
+        userId: session.user.id,
+        slots: '[]',
+      },
+      update: {},
+    }),
+  ]);
 
   return NextResponse.json({ joined: true, projectId: project.id, projectName: project.name });
 }

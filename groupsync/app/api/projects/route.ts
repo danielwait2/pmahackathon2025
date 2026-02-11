@@ -40,6 +40,12 @@ export async function POST(request: Request) {
           role: 'owner',
         },
       },
+      availability: {
+        create: {
+          userId: session.user.id,
+          slots: '[]',
+        },
+      },
       teamAgreement: {
         create: {
           responseTimeHours: responseTimeHours ?? 24,

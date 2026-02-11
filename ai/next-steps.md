@@ -4,7 +4,7 @@
 ✅ Dashboard is complete and working
 ✅ Create project wizard works (POST /api/projects 200)
 ✅ Dashboard shows project cards
-❌ Clicking projects fails with 404 - `/project/[id]` page doesn't exist
+✅ Clicking projects opens `/project/[id]` (basic project page restored)
 
 ## What Needs to be Built Next
 
@@ -17,19 +17,19 @@ The project page was deleted during the Supabase → NextAuth/Prisma migration. 
 ## Priority 1: Basic Project Page (CRITICAL - needed to unblock dashboard clicks)
 
 ### 1.1 Create the project page route
-- [ ] **File:** `app/project/[id]/page.tsx`
-- [ ] Server component that:
+- [x] **File:** `app/project/[id]/page.tsx`
+- [x] Server component that:
   - Gets session via `getServerSession(authOptions)`
   - Fetches project by ID from Prisma
   - Verifies user is a member (redirect to 404 if not)
   - Fetches project members, tasks, team agreement
   - Renders a basic layout with project info
-- [ ] **Minimal MVP:** Just show project name, description, deadline, member list for now
-- [ ] **Blocker:** This 404 is preventing users from viewing projects they create
+- [x] **Minimal MVP:** Just show project name, description, deadline, member list for now
+- [x] **Blocker:** This 404 is preventing users from viewing projects they create
 
 ### 1.2 Add project not-found page
-- [ ] **File:** `app/project/[id]/not-found.tsx`
-- [ ] Simple "Project not found" message with link back to dashboard
+- [x] **File:** `app/project/[id]/not-found.tsx`
+- [x] Simple "Project not found" message with link back to dashboard
 
 ---
 
@@ -38,19 +38,19 @@ The project page was deleted during the Supabase → NextAuth/Prisma migration. 
 The following components were deleted and need rebuilding:
 
 ### 2.1 Project Header & Layout
-- [ ] `components/project/ProjectHeader.tsx` — Project name, deadline, invite code display
-- [ ] `components/project/ProjectTabs.tsx` — Tab navigation (Tasks, Availability, Team)
+- [x] `components/project/ProjectHeader.tsx` — Project name, deadline, invite code display
+- [x] `components/project/ProjectTabs.tsx` — Tab navigation (Tasks, Availability, Team)
 
 ### 2.2 Tasks Tab
-- [ ] `components/project/TasksTab.tsx` — Container for task views
+- [x] `components/project/TasksTab.tsx` — Container for task views
 - [ ] `components/project/TaskBoard.tsx` — Kanban board (todo/in_progress/done columns)
 - [ ] `components/project/TaskCard.tsx` — Individual task card with drag-and-drop
 - [ ] `components/project/TaskListView.tsx` — Mobile-friendly list view
 - [ ] `components/project/AddTaskModal.tsx` — Create/edit tasks
 - [ ] `components/project/TaskDetailModal.tsx` — View task details
-- [ ] **API Route:** `POST /api/tasks` — Create task
-- [ ] **API Route:** `PATCH /api/tasks/[id]` — Update task (status, assignee, etc.)
-- [ ] **API Route:** `DELETE /api/tasks/[id]` — Delete task
+- [x] **API Route:** `POST /api/tasks` — Create task
+- [x] **API Route:** `PATCH /api/tasks/[id]` — Update task (status, assignee, etc.)
+- [x] **API Route:** `DELETE /api/tasks/[id]` — Delete task
 
 ### 2.3 AI Task Suggestions (optional, nice-to-have)
 - [ ] `components/project/AISuggestButton.tsx` — Button to trigger AI suggestions
@@ -59,7 +59,7 @@ The following components were deleted and need rebuilding:
 - [ ] Needs `GEMINI_API_KEY` in `.env.local`
 
 ### 2.4 Availability Tab
-- [ ] `components/project/AvailabilityTab.tsx` — Container
+- [x] `components/project/AvailabilityTab.tsx` — Container
 - [ ] `components/project/AvailabilityGrid.tsx` — Weekly calendar grid (click/drag time slots)
 - [ ] `components/project/availability-utils.ts` — Slot formatting helpers
 - [ ] `components/project/TeamAvailability.tsx` — Show all members' availability
@@ -68,7 +68,7 @@ The following components were deleted and need rebuilding:
 - [ ] **API Route:** `GET /api/availability/[projectId]` — Get all members' availability
 
 ### 2.5 Team Tab
-- [ ] `components/project/TeamTab.tsx` — Container
+- [x] `components/project/TeamTab.tsx` — Container
 - [ ] `components/project/TeamAgreement.tsx` — Display team agreement (was NOT deleted - check if it exists)
 - [ ] `components/project/TeamAgreementEditor.tsx` — Edit agreement (owner only) (was NOT deleted - check if it exists)
 - [ ] Show member list with roles, join dates
@@ -81,13 +81,13 @@ The following components were deleted and need rebuilding:
 ## Priority 3: Join Flow (needs `/join/[code]` page)
 
 ### 3.1 Join by invite code page
-- [ ] **File:** `app/join/[code]/page.tsx`
-- [ ] Server component that:
+- [x] **File:** `app/join/[code]/page.tsx`
+- [x] Server component that:
   - Fetches project by invite code
   - If not logged in: show login prompt
   - If logged in: show project preview + "Join" button
   - On join: add to `project_members`, create `availability` row, redirect to project
-- [ ] Handle edge cases: invalid code, already member
+- [x] Handle edge cases: invalid code, already member
 
 ---
 
