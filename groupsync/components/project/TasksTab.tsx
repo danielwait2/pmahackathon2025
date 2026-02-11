@@ -57,6 +57,7 @@ export function TasksTab({ projectId, tasks, members, onRefresh }: TasksTabProps
       throw new Error('Failed to create task');
     }
 
+    setIsAddModalOpen(false);
     onRefresh();
   };
 

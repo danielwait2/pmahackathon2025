@@ -38,6 +38,13 @@ export function TeamAvailability({ availabilities }: TeamAvailabilityProps) {
     color: USER_COLORS[index % USER_COLORS.length],
   }));
 
+  console.log('TeamAvailability - Total users:', availabilities.length);
+  console.log('TeamAvailability - User grids:', userGrids.map(u => ({
+    name: u.userName,
+    slotCount: u.slots.length,
+    hasData: u.grid.some(day => day.some(slot => slot))
+  })));
+
   // Calculate how many people are available at each time slot (48 half-hour blocks)
   const overlapCounts: number[][] = Array.from({ length: 7 }, () => Array(48).fill(0));
   for (const { grid } of userGrids) {
@@ -49,6 +56,8 @@ export function TeamAvailability({ availabilities }: TeamAvailabilityProps) {
       }
     }
   }
+
+  console.log('TeamAvailability - Max overlap found:', Math.max(...overlapCounts.flat()));
 
   const maxCount = availabilities.length;
 

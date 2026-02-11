@@ -35,17 +35,11 @@ export function ProjectHeader({ name, description, deadline, inviteCode, memberC
   return (
     <header className="space-y-4 rounded-xl border border-slate-200 bg-white p-5 sm:p-6">
       {/* Navigation */}
-      <div className="flex items-center gap-2 pb-3 border-b border-slate-100">
+      <div className="pb-3 border-b border-slate-100">
         <Link href="/dashboard">
           <Button variant="ghost" size="sm" className="gap-2">
-            <Home className="h-4 w-4" />
-            Home
-          </Button>
-        </Link>
-        <Link href="/projects">
-          <Button variant="ghost" size="sm" className="gap-2">
             <ArrowLeft className="h-4 w-4" />
-            All Projects
+            Back to Projects
           </Button>
         </Link>
       </div>

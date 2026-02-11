@@ -62,7 +62,7 @@ export function AddTaskModal({
     setIsSubmitting(true);
     try {
       await onSubmit(formData);
-      onClose();
+      // Don't close here - let parent handle closing after refresh
       // Reset form
       setFormData({
         title: '',
