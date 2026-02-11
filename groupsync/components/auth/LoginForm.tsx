@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase';
 import { Button } from '@/components/ui/button';
@@ -12,6 +12,7 @@ import { toast } from 'sonner';
 
 export function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -31,10 +32,11 @@ export function LoginForm() {
         toast.error(error.message);
       } else {
         toast.success('Logged in successfully!');
-        router.push('/dashboard');
+        const redirectTo = searchParams.get('redirect') || '/dashboard';
+        router.push(redirectTo);
         router.refresh();
       }
-    } catch (error) {
+    } catch {
       toast.error('An unexpected error occurred');
     } finally {
       setLoading(false);
@@ -88,3 +90,4 @@ export function LoginForm() {
     </Card>
   );
 }
+

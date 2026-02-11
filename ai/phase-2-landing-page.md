@@ -159,19 +159,19 @@ Add a minimal nav bar at the top of the landing page:
 
 ## Checklist
 
-- [ ] `components/landing/HeroSection.tsx` — renders with headline, subheadline, CTAs
-- [ ] `components/landing/ProblemSection.tsx` — 3 stat cards with survey data
-- [ ] `components/landing/SolutionSection.tsx` — 4 feature cards
-- [ ] `components/landing/HowItWorksSection.tsx` — 3 steps
-- [ ] `components/landing/CTASection.tsx` — final call to action
-- [ ] `app/page.tsx` — assembles all sections
-- [ ] Navigation bar with logo, login, get started
-- [ ] Survey attribution text present ("Based on survey of 31 students")
-- [ ] All CTA buttons link to correct routes (/signup, /login)
+- [x] `components/landing/HeroSection.tsx` — renders with headline, subheadline, CTAs
+- [x] `components/landing/ProblemSection.tsx` — 3 stat cards with survey data
+- [x] `components/landing/SolutionSection.tsx` — 4 feature cards
+- [x] `components/landing/HowItWorksSection.tsx` — 3 steps
+- [x] `components/landing/CTASection.tsx` — final call to action
+- [x] `app/page.tsx` — assembles all sections
+- [x] Navigation bar with logo, login, get started
+- [x] Survey attribution text present ("Based on survey of 31 students")
+- [x] All CTA buttons link to correct routes (/signup, /login)
 - [ ] Mobile responsive (375px) — no horizontal scroll, stacked layout
 - [ ] Tablet responsive (768px) — reasonable layout
 - [ ] Desktop (1280px+) — full layout with columns
-- [ ] Color scheme matches spec (blue-600 primary, emerald-500 accents)
+- [x] Color scheme matches spec (blue-600 primary, emerald-500 accents)
 - [ ] No console errors
 
 ---
@@ -179,3 +179,5 @@ Add a minimal nav bar at the top of the landing page:
 ## Next Phase
 
 When all items are checked, proceed to [Phase 3: Dashboard & Project Creation](phase-3-dashboard.md).
+
+

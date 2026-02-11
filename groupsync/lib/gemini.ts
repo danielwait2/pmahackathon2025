@@ -21,5 +21,5 @@ export function getGeminiModel() {
   const client = getGeminiClient();
   if (!client) return null;
 
-  return client.getGenerativeModel({ model: 'gemini-pro' });
+  return client.getGenerativeModel({ model: 'gemini-1.5-flash' });
 }

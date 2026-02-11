@@ -377,58 +377,58 @@ Shows AI-generated task suggestions:
 ## Checklist
 
 ### Project Layout
-- [ ] `app/(dashboard)/project/[id]/page.tsx` — fetches project data, verifies membership
-- [ ] `components/project/ProjectHeader.tsx` — name, deadline, invite button, settings
-- [ ] `components/project/ProjectTabs.tsx` — 4 tabs: Overview, Tasks, Availability, Team
-- [ ] Overview tab: quick stats, agreement preview, upcoming deadlines
+- [x] `app/(dashboard)/project/[id]/page.tsx` - fetches project data, verifies membership
+- [x] `components/project/ProjectHeader.tsx` - name, deadline, invite button, settings
+- [x] `components/project/ProjectTabs.tsx` - 4 tabs: Overview, Tasks, Availability, Team
+- [x] Overview tab: quick stats, agreement preview, upcoming deadlines
 
 ### Availability (When2Meet-style)
-- [ ] `components/project/AvailabilityTab.tsx` — layout container
-- [ ] `components/project/AvailabilityGrid.tsx` — weekly grid input
-- [ ] Grid: 7 columns (Mon-Sun) x 28 rows (8AM-10PM, 30-min slots)
-- [ ] Click to toggle cells
-- [ ] Click-and-drag to select multiple cells
-- [ ] Green = available, gray = unavailable
-- [ ] Mobile: list-based time range input alternative
-- [ ] Save button → upserts to Supabase `availability` table
-- [ ] Loads existing availability on mount
-- [ ] `components/project/TeamAvailability.tsx` — overlap visualization
-- [ ] Color intensity based on how many members are free
-- [ ] Hover/click tooltip showing who is available
-- [ ] Legend showing color scale
-- [ ] `components/project/MeetingFinder.tsx` — algorithm + UI
-- [ ] Finds slots where all (or most) members are free
-- [ ] Merges consecutive slots into blocks
-- [ ] Ranks by: member count, duration, time preference
-- [ ] Shows top 5 suggestions as cards
-- [ ] Each card: day, time range, duration, who's available
-- [ ] "Schedule This" button (owner only)
-- [ ] Handles no-overlap edge case with partial matches
+- [x] `components/project/AvailabilityTab.tsx` - layout container
+- [x] `components/project/AvailabilityGrid.tsx` - weekly grid input
+- [x] Grid: 7 columns (Mon-Sun) x 28 rows (8AM-10PM, 30-min slots)
+- [x] Click to toggle cells
+- [x] Click-and-drag to select multiple cells
+- [x] Green = available, gray = unavailable
+- [x] Mobile: list-based time range input alternative
+- [x] Save button - upserts to Supabase `availability` table
+- [x] Loads existing availability on mount
+- [x] `components/project/TeamAvailability.tsx` - overlap visualization
+- [x] Color intensity based on how many members are free
+- [x] Hover/click tooltip showing who is available
+- [x] Legend showing color scale
+- [x] `components/project/MeetingFinder.tsx` - algorithm + UI
+- [x] Finds slots where all (or most) members are free
+- [x] Merges consecutive slots into blocks
+- [x] Ranks by: member count, duration, time preference
+- [x] Shows top 5 suggestions as cards
+- [x] Each card: day, time range, duration, who's available
+- [x] "Schedule This" button (owner only)
+- [x] Handles no-overlap edge case with partial matches
 
 ### Task Management
-- [ ] `components/project/TasksTab.tsx` — board/list toggle, add task, AI suggest buttons
-- [ ] `components/project/TaskBoard.tsx` — 3-column Kanban with dnd-kit
-- [ ] Drag-and-drop between columns updates task status
-- [ ] `components/project/TaskCard.tsx` — title, assignee, due date, drag handle
-- [ ] `components/project/TaskDetailModal.tsx` — full task editor
-- [ ] Task detail: edit title, description, assignee, due date, status
-- [ ] Task detail: delete with confirmation
-- [ ] `components/project/TaskListView.tsx` — grouped list, mobile-friendly
-- [ ] `components/project/AddTaskModal.tsx` — quick-add form
-- [ ] Task CRUD all saves to Supabase
+- [x] `components/project/TasksTab.tsx` - board/list toggle, add task, AI suggest buttons
+- [x] `components/project/TaskBoard.tsx` - 3-column Kanban with dnd-kit
+- [x] Drag-and-drop between columns updates task status
+- [x] `components/project/TaskCard.tsx` - title, assignee, due date, drag handle
+- [x] `components/project/TaskDetailModal.tsx` - full task editor
+- [x] Task detail: edit title, description, assignee, due date, status
+- [x] Task detail: delete with confirmation
+- [x] `components/project/TaskListView.tsx` - grouped list, mobile-friendly
+- [x] `components/project/AddTaskModal.tsx` - quick-add form
+- [x] Task CRUD all saves to Supabase
 
 ### AI Task Suggestions
-- [ ] `lib/gemini.ts` — Gemini client configuration
-- [ ] `app/api/suggest-tasks/route.ts` — API endpoint calling Gemini
-- [ ] `components/project/AISuggestButton.tsx` — trigger button with loading state
-- [ ] `components/project/TaskSuggestionsModal.tsx` — display and add suggestions
-- [ ] Suggestions show title, description, hours, priority
-- [ ] "Add" per task and "Add All" bulk button
-- [ ] Graceful fallback when GEMINI_API_KEY is missing
-- [ ] No app crash on API errors
-
+- [x] `lib/gemini.ts` - Gemini client configuration
+- [x] `app/api/suggest-tasks/route.ts` - API endpoint calling Gemini
+- [x] `components/project/AISuggestButton.tsx` - trigger button with loading state
+- [x] `components/project/TaskSuggestionsModal.tsx` - display and add suggestions
+- [x] Suggestions show title, description, hours, priority
+- [x] "Add" per task and "Add All" bulk button
+- [x] Graceful fallback when GEMINI_API_KEY is missing
+- [x] No app crash on API errors
 ---
 
 ## Next Phase
 
 When all items are checked, proceed to [Phase 5: Team Agreement](phase-5-team-agreement.md).
+

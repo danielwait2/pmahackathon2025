@@ -78,3 +78,16 @@ export interface AISuggestedTask {
   estimatedHours: number;
   priority: 'high' | 'medium' | 'low';
 }
+
+export interface ProjectMemberPreview {
+  id: string;
+  name: string;
+  avatar_url: string | null;
+}
+
+export interface DashboardProject extends Project {
+  member_count: number;
+  total_tasks: number;
+  completed_tasks: number;
+  members: ProjectMemberPreview[];
+}

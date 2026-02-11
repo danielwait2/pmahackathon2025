@@ -116,36 +116,36 @@ Use this to track overall progress. Detailed checklists are in each phase file.
 - [x] Auth middleware protecting routes
 - [x] AuthProvider context working
 
-### Phase 2: Landing Page
-- [ ] Hero section with headline and CTAs
-- [ ] Problem section with survey stats (39%, 68%)
-- [ ] Solution section with 4 feature cards
-- [ ] How It Works section (3 steps)
-- [ ] Final CTA section
-- [ ] Mobile responsive
-- [ ] CTAs link to auth pages
+### Phase 2: Landing Page ⚠️ (Code Complete - Needs Manual Responsive QA)
+- [x] Hero section with headline and CTAs
+- [x] Problem section with survey stats (39%, 68%)
+- [x] Solution section with 4 feature cards
+- [x] How It Works section (3 steps)
+- [x] Final CTA section
+- [ ] Mobile responsive (manual viewport check pending)
+- [x] CTAs link to auth pages
 
-### Phase 3: Dashboard & Project Creation
-- [ ] Dashboard page showing user's projects
-- [ ] Project cards with name, deadline, members, progress
-- [ ] Empty state for no projects
-- [ ] Create Project wizard (3 steps: info, setup, invite)
-- [ ] Invite code generation and copy
-- [ ] Join Project modal with code input
-- [ ] Join via URL (/join/[code]) working
-- [ ] Edge cases handled (invalid code, already member)
+### Phase 3: Dashboard & Project Creation ⚠️ (Code Complete - Needs Supabase Trigger + Mobile QA)
+- [x] Dashboard page showing user's projects
+- [x] Project cards with name, deadline, members, progress
+- [x] Empty state for no projects
+- [x] Create Project wizard (3 steps: info, setup, invite)
+- [x] Invite code generation and copy
+- [x] Join Project modal with code input
+- [x] Join via URL (/join/[code]) working
+- [x] Edge cases handled (invalid code, already member)
 
-### Phase 4: Project Features
-- [ ] Project page with tabbed layout (Overview, Tasks, Availability, Team)
-- [ ] Availability grid input (click/drag time slots)
-- [ ] Availability saves to Supabase
-- [ ] Team availability overlap visualization
-- [ ] Meeting finder algorithm with top 5 suggestions
-- [ ] Task board (Kanban with drag-and-drop)
-- [ ] Task list view (mobile-friendly alternative)
-- [ ] Task CRUD (create, read, update, delete)
-- [ ] AI task suggestions via Gemini API
-- [ ] Graceful fallback if no API key
+### Phase 4: Project Features ⚠️ (Code Complete - Needs Manual End-to-End QA)
+- [x] Project page with tabbed layout (Overview, Tasks, Availability, Team)
+- [x] Availability grid input (click/drag time slots)
+- [x] Availability saves to Supabase
+- [x] Team availability overlap visualization
+- [x] Meeting finder algorithm with top 5 suggestions
+- [x] Task board (Kanban with drag-and-drop)
+- [x] Task list view (mobile-friendly alternative)
+- [x] Task CRUD (create, read, update, delete)
+- [x] AI task suggestions via Gemini API
+- [x] Graceful fallback if no API key
 
 ### Phase 5: Team Agreement
 - [ ] Team members list with roles
