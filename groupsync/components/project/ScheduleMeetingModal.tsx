@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Calendar } from 'lucide-react';
 import {
   Dialog,
@@ -13,6 +13,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface ScheduleMeetingModalProps {
   isOpen: boolean;
@@ -22,6 +23,7 @@ interface ScheduleMeetingModalProps {
   prefilledDate?: string;
   prefilledStartTime?: string;
   prefilledEndTime?: string;
+  prefilledDurationMinutes?: number;
 }
 
 export function ScheduleMeetingModal({
@@ -32,13 +34,31 @@ export function ScheduleMeetingModal({
   prefilledDate = '',
   prefilledStartTime = '',
   prefilledEndTime = '',
+  prefilledDurationMinutes = 60,
 }: ScheduleMeetingModalProps) {
+  const initialDuration =
+    prefilledDurationMinutes > 0
+      ? prefilledDurationMinutes
+      : getDurationMinutes(prefilledStartTime, prefilledEndTime) || 60;
+
   const [title, setTitle] = useState('');
   const [date, setDate] = useState(prefilledDate);
   const [startTime, setStartTime] = useState(prefilledStartTime);
-  const [endTime, setEndTime] = useState(prefilledEndTime);
+  const [durationMinutes, setDurationMinutes] = useState(initialDuration);
+  const [endTime, setEndTime] = useState(calculateEndTime(prefilledStartTime, initialDuration));
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    const nextDuration =
+      prefilledDurationMinutes > 0
+        ? prefilledDurationMinutes
+        : getDurationMinutes(prefilledStartTime, prefilledEndTime) || 60;
+    setDate(prefilledDate);
+    setStartTime(prefilledStartTime);
+    setDurationMinutes(nextDuration);
+    setEndTime(calculateEndTime(prefilledStartTime, nextDuration));
+  }, [prefilledDate, prefilledStartTime, prefilledEndTime, prefilledDurationMinutes]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -78,7 +98,8 @@ export function ScheduleMeetingModal({
       setTitle('');
       setDate(prefilledDate);
       setStartTime(prefilledStartTime);
-      setEndTime(prefilledEndTime);
+      setDurationMinutes(initialDuration);
+      setEndTime(calculateEndTime(prefilledStartTime, initialDuration));
       onSuccess();
       onClose();
     } catch (err) {
@@ -94,6 +115,17 @@ export function ScheduleMeetingModal({
       setTitle('');
       onClose();
     }
+  };
+
+  const handleStartTimeChange = (value: string) => {
+    setStartTime(value);
+    setEndTime(calculateEndTime(value, durationMinutes));
+  };
+
+  const handleDurationChange = (value: string) => {
+    const nextDuration = Number(value);
+    setDurationMinutes(nextDuration);
+    setEndTime(calculateEndTime(startTime, nextDuration));
   };
 
   return (
@@ -140,21 +172,36 @@ export function ScheduleMeetingModal({
                   id="startTime"
                   type="time"
                   value={startTime}
-                  onChange={(e) => setStartTime(e.target.value)}
+                  onChange={(e) => handleStartTimeChange(e.target.value)}
                   disabled={isSubmitting}
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="endTime">End Time</Label>
-                <Input
-                  id="endTime"
-                  type="time"
-                  value={endTime}
-                  onChange={(e) => setEndTime(e.target.value)}
-                  disabled={isSubmitting}
-                />
+                <Label>Duration</Label>
+                <Select value={String(durationMinutes)} onValueChange={handleDurationChange} disabled={isSubmitting}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="30">30 min</SelectItem>
+                    <SelectItem value="60">1 hour</SelectItem>
+                    <SelectItem value="90">1.5 hours</SelectItem>
+                    <SelectItem value="120">2 hours</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="endTime">End Time</Label>
+              <Input
+                id="endTime"
+                type="time"
+                value={endTime}
+                readOnly
+                disabled
+              />
             </div>
 
             {error && (
@@ -179,4 +226,31 @@ export function ScheduleMeetingModal({
       </DialogContent>
     </Dialog>
   );
+}
+
+function parseTimeToMinutes(time: string): number | null {
+  if (!time || !/^\d{2}:\d{2}$/.test(time)) return null;
+  const [h, m] = time.split(':').map(Number);
+  return h * 60 + m;
+}
+
+function formatMinutesToTime(totalMinutes: number): string {
+  const normalized = ((totalMinutes % (24 * 60)) + 24 * 60) % (24 * 60);
+  const hours = Math.floor(normalized / 60);
+  const minutes = normalized % 60;
+  return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+}
+
+function calculateEndTime(startTime: string, durationMinutes: number): string {
+  const startMinutes = parseTimeToMinutes(startTime);
+  if (startMinutes === null) return '';
+  return formatMinutesToTime(startMinutes + durationMinutes);
+}
+
+function getDurationMinutes(startTime: string, endTime: string): number | null {
+  const startMinutes = parseTimeToMinutes(startTime);
+  const endMinutes = parseTimeToMinutes(endTime);
+  if (startMinutes === null || endMinutes === null) return null;
+  const diff = endMinutes - startMinutes;
+  return diff > 0 ? diff : null;
 }

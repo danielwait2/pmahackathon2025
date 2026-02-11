@@ -90,6 +90,19 @@ export function UpcomingMeetings({ projectId, currentUserId, refreshTrigger = 0 
     return `${displayHour}:${minutes} ${ampm}`;
   };
 
+  const formatDuration = (startTime: string, endTime: string) => {
+    const [startHour, startMinute] = startTime.split(':').map(Number);
+    const [endHour, endMinute] = endTime.split(':').map(Number);
+    const totalMinutes = endHour * 60 + endMinute - (startHour * 60 + startMinute);
+    if (totalMinutes <= 0) return null;
+    if (totalMinutes < 60) return `${totalMinutes} min`;
+    if (totalMinutes % 60 === 0) {
+      const hours = totalMinutes / 60;
+      return `${hours}h`;
+    }
+    return `${totalMinutes / 60}h`;
+  };
+
   if (isLoading) {
     return (
       <Card>
@@ -140,6 +153,11 @@ export function UpcomingMeetings({ projectId, currentUserId, refreshTrigger = 0 
                           <span>
                             {formatTime(meeting.startTime)} - {formatTime(meeting.endTime)}
                           </span>
+                          {formatDuration(meeting.startTime, meeting.endTime) && (
+                            <Badge variant="outline" className="text-[10px]">
+                              {formatDuration(meeting.startTime, meeting.endTime)}
+                            </Badge>
+                          )}
                         </div>
 
                         {meeting.createdBy && (

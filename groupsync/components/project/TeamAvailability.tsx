@@ -14,6 +14,7 @@ import {
 
 interface TeamAvailabilityProps {
   availabilities: UserAvailability[];
+  weekOffset?: number;
 }
 
 // Show hours from 6 AM to 11 PM for better UX (in 30-minute increments)
@@ -31,7 +32,7 @@ const USER_COLORS = [
   'bg-red-500/70',
 ];
 
-export function TeamAvailability({ availabilities }: TeamAvailabilityProps) {
+export function TeamAvailability({ availabilities, weekOffset = 0 }: TeamAvailabilityProps) {
   // Create grids for each user
   const userGrids = availabilities.map((avail, index) => ({
     ...avail,
@@ -97,7 +98,7 @@ export function TeamAvailability({ availabilities }: TeamAvailabilityProps) {
                 <div className="bg-slate-50 border-b border-r border-slate-200 p-2 text-xs font-medium text-slate-600">Time</div>
                 {DAYS_OF_WEEK.map((day, idx) => (
                   <div key={day} className={`bg-slate-50 border-b border-slate-200 p-2 text-xs font-medium text-center text-slate-900 ${idx < 6 ? 'border-r' : ''}`}>
-                    {getDayHeaderWithDate(idx)}
+                    {getDayHeaderWithDate(idx, weekOffset)}
                   </div>
                 ))}
               </div>

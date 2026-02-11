@@ -3,7 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { DashboardShell } from '@/components/dashboard/DashboardShell';
-import { DashboardProject, ProjectMemberPreview } from '@/types';
+import { DashboardAssignedTask, DashboardProject, ProjectMemberPreview } from '@/types';
 
 export default async function DashboardPage() {
   const session = await getServerSession(authOptions);
@@ -25,9 +25,10 @@ export default async function DashboardPage() {
   const projectIds = projectMemberships.map((m) => m.projectId);
 
   let projects: DashboardProject[] = [];
+  let myTasks: DashboardAssignedTask[] = [];
 
   if (projectIds.length > 0) {
-    const [projectRows, taskRows, memberRows] = await Promise.all([
+    const [projectRows, taskRows, memberRows, assignedTaskRows] = await Promise.all([
       prisma.project.findMany({
         where: { id: { in: projectIds } },
         orderBy: { createdAt: 'desc' },
@@ -43,6 +44,21 @@ export default async function DashboardPage() {
             select: { id: true, name: true, avatarUrl: true },
           },
         },
+      }),
+      prisma.task.findMany({
+        where: {
+          projectId: { in: projectIds },
+          assignedTo: session.user.id,
+        },
+        include: {
+          project: {
+            select: { id: true, name: true },
+          },
+        },
+        orderBy: [
+          { dueDate: 'asc' },
+          { createdAt: 'desc' },
+        ],
       }),
     ]);
 
@@ -91,6 +107,15 @@ export default async function DashboardPage() {
         completed_tasks: completedTasks,
       };
     });
+
+    myTasks = assignedTaskRows.map((task) => ({
+      id: task.id,
+      title: task.title,
+      status: task.status as 'todo' | 'in_progress' | 'done',
+      dueDate: task.dueDate?.toISOString() ?? null,
+      projectId: task.project.id,
+      projectName: task.project.name,
+    }));
   }
 
   return (
@@ -101,6 +126,7 @@ export default async function DashboardPage() {
           userEmail={user?.email ?? session.user?.email ?? ''}
           userAvatarUrl={user?.avatarUrl ?? null}
           projects={projects}
+          myTasks={myTasks}
         />
       </div>
     </main>

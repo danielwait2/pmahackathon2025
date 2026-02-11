@@ -6,7 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AvailabilityTab } from '@/components/project/AvailabilityTab';
 import { ProjectTaskItem, TasksTab } from '@/components/project/TasksTab';
 import { TeamMemberItem, TeamTab } from '@/components/project/TeamTab';
-import { type UserAvailability, type TimeSlot } from './availability-utils';
+import { type UserAvailability } from './availability-utils';
 
 interface TeamAgreementData {
   id: string;
@@ -49,23 +49,6 @@ export function ProjectTabs({
     router.refresh();
   };
 
-  const handleSaveAvailability = async (slots: TimeSlot[]) => {
-    const response = await fetch('/api/availability', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        projectId,
-        slots,
-      }),
-    });
-
-    if (!response.ok) {
-      throw new Error('Failed to save availability');
-    }
-
-    router.refresh();
-  };
-
   return (
     <Tabs defaultValue="tasks" className="space-y-4">
       <TabsList>
@@ -91,7 +74,6 @@ export function ProjectTabs({
           currentUserId={actualUserId}
           initialSlots={currentUserAvailability}
           teamAvailabilities={availabilities}
-          onSave={handleSaveAvailability}
         />
       </TabsContent>
 

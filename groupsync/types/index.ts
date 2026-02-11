@@ -40,3 +40,12 @@ export interface Task {
   orderIndex: number;
   createdAt: string;
 }
+
+export interface DashboardAssignedTask {
+  id: string;
+  title: string;
+  status: 'todo' | 'in_progress' | 'done';
+  dueDate: string | null;
+  projectId: string;
+  projectName: string;
+}

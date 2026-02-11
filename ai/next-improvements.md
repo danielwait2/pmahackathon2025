@@ -6,12 +6,12 @@
 
 ## Priority Rankings
 
-| Rank | Improvement | Usefulness | Ease | Score | Status |
-|------|------------|-----------|------|-------|--------|
-| 1 | Week navigation for availability (next/previous week) | 9/10 | 7/10 | **Highest** | ❌ Not done |
-| 2 | 30-minute meeting duration option | 8/10 | 8/10 | **High** | ❌ Not done |
-| 3 | Edit tasks after creation | 7/10 | 6/10 | **Medium** | ❌ Not done |
-| 4 | View all assigned tasks from projects page | 8/10 | 7/10 | **High** | ❌ Not done |
+| Rank | Improvement                                           | Usefulness | Ease | Score       | Status      |
+| ---- | ----------------------------------------------------- | ---------- | ---- | ----------- | ----------- |
+| 1    | Week navigation for availability (next/previous week) | 9/10       | 7/10 | **Highest** | ❌ Not done |
+| 2    | 30-minute meeting duration option                     | 8/10       | 8/10 | **High**    | ❌ Not done |
+| 3    | Edit tasks after creation                             | 7/10       | 6/10 | **Medium**  | ❌ Not done |
+| 4    | View all assigned tasks from projects page            | 8/10       | 7/10 | **High**    | ❌ Not done |
 
 **Total estimated time:** ~4-5 hours
 
@@ -71,6 +71,7 @@
 - [ ] Mobile layout still works with navigation
 
 ### Effort Estimate
+
 ~1.5-2 hours
 
 ---
@@ -125,6 +126,7 @@
 - [ ] Longer durations filter appropriately
 
 ### Effort Estimate
+
 ~1-1.5 hours
 
 ---
@@ -187,6 +189,7 @@
 - [ ] Validation prevents empty titles
 
 ### Effort Estimate
+
 ~1.5 hours
 
 ---
@@ -251,6 +254,7 @@
 - [ ] Mobile layout doesn't break
 
 ### Effort Estimate
+
 ~1-1.5 hours
 
 ---
@@ -273,14 +277,17 @@
 After implementing these improvements:
 
 ✅ **Scheduling becomes more flexible:**
+
 - Plan availability weeks in advance
 - Schedule both quick check-ins (30 min) and long working sessions (2 hours)
 
 ✅ **Task management becomes complete:**
+
 - Edit tasks when requirements change
 - See all your work in one place across projects
 
 ✅ **User workflow improvements:**
+
 - Less context switching (see tasks from dashboard)
 - Better planning horizon (multi-week availability)
 - Matches real-world meeting types (variable durations)
@@ -299,7 +306,7 @@ function getWeekDates(offset: number = 0): Date[] {
   const currentDay = today.getDay();
   const diff = today.getDate() - currentDay + (currentDay === 0 ? -6 : 1); // Monday
   const monday = new Date(today.setDate(diff));
-  monday.setDate(monday.getDate() + (offset * 7)); // Apply week offset
+  monday.setDate(monday.getDate() + offset * 7); // Apply week offset
 
   return Array.from({ length: 7 }, (_, i) => {
     const date = new Date(monday);
@@ -317,11 +324,11 @@ Current Meeting model uses `startTime` and `endTime` strings. Duration can be ca
 
 Suggested permission matrix:
 
-| User Role | Can Edit? |
-|-----------|-----------|
-| Task creator | ✅ Always |
-| Task assignee | ✅ Always |
-| Project owner | ✅ Always |
+| User Role          | Can Edit?                    |
+| ------------------ | ---------------------------- |
+| Task creator       | ✅ Always                    |
+| Task assignee      | ✅ Always                    |
+| Project owner      | ✅ Always                    |
 | Other team members | ❌ No (or make configurable) |
 
 ### My Tasks API Performance
@@ -336,11 +343,11 @@ const tasks = await prisma.task.findMany({
     OR: [
       { dueDate: { gte: thirtyDaysAgo } },
       { dueDate: { lte: thirtyDaysFromNow } },
-      { dueDate: null } // Include tasks without due date
-    ]
+      { dueDate: null }, // Include tasks without due date
+    ],
   },
   include: { project: { select: { id: true, name: true } } },
-  orderBy: { dueDate: 'asc' }
+  orderBy: { dueDate: "asc" },
 });
 ```
 

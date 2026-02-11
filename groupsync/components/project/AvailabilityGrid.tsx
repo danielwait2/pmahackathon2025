@@ -17,12 +17,13 @@ interface AvailabilityGridProps {
   slots: TimeSlot[];
   onChange: (slots: TimeSlot[]) => void;
   readonly?: boolean;
+  weekOffset?: number;
 }
 
 // Show hours from 6 AM to 11 PM for better UX (in 30-minute increments)
 const DISPLAY_HALF_HOURS = HALF_HOURS.filter(h => h >= 6 && h < 23);
 
-export function AvailabilityGrid({ slots, onChange, readonly = false }: AvailabilityGridProps) {
+export function AvailabilityGrid({ slots, onChange, readonly = false, weekOffset = 0 }: AvailabilityGridProps) {
   const [grid, setGrid] = useState<boolean[][]>(() => createAvailabilityGrid(slots));
   const [isDragging, setIsDragging] = useState(false);
   const [dragMode, setDragMode] = useState<'select' | 'deselect'>('select');
@@ -142,7 +143,7 @@ export function AvailabilityGrid({ slots, onChange, readonly = false }: Availabi
               <div className="bg-slate-50 border-b border-r border-slate-200 p-2 text-xs font-medium text-slate-600">Time</div>
               {DAYS_OF_WEEK.map((day, idx) => (
                 <div key={day} className={`bg-slate-50 border-b border-slate-200 p-2 text-xs font-medium text-center text-slate-900 ${idx < 6 ? 'border-r' : ''}`}>
-                  {getDayHeaderWithDate(idx)}
+                  {getDayHeaderWithDate(idx, weekOffset)}
                 </div>
               ))}
             </div>

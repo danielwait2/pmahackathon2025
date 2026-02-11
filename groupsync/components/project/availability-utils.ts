@@ -161,7 +161,21 @@ export function suggestMeetingTimes(
   commonSlots: TimeSlot[],
   minDuration: number = 1
 ): TimeSlot[] {
-  return commonSlots.filter((slot) => slot.endHour - slot.startHour >= minDuration);
+  const suggestions: TimeSlot[] = [];
+
+  for (const slot of commonSlots) {
+    if (slot.endHour - slot.startHour < minDuration) continue;
+
+    for (let start = slot.startHour; start + minDuration <= slot.endHour; start += 0.5) {
+      suggestions.push({
+        day: slot.day,
+        startHour: start,
+        endHour: start + minDuration,
+      });
+    }
+  }
+
+  return suggestions;
 }
 
 /**
@@ -221,6 +235,10 @@ export function gridToSlots(grid: boolean[][]): TimeSlot[] {
  * @param dayIndex 0 = Monday, 1 = Tuesday, ..., 6 = Sunday
  */
 export function getWeekDate(dayIndex: number): Date {
+  return getWeekDateWithOffset(dayIndex, 0);
+}
+
+export function getWeekDateWithOffset(dayIndex: number, weekOffset: number = 0): Date {
   const today = new Date();
   const currentDay = today.getDay(); // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
 
@@ -229,7 +247,7 @@ export function getWeekDate(dayIndex: number): Date {
 
   // Get Monday of current week
   const monday = new Date(today);
-  monday.setDate(today.getDate() + daysFromMonday);
+  monday.setDate(today.getDate() + daysFromMonday + weekOffset * 7);
 
   // Get the target day
   const targetDate = new Date(monday);
@@ -249,13 +267,24 @@ export function formatShortDate(date: Date): string {
  * Get formatted day header with date (e.g., "Mon 2/10")
  * @param dayIndex 0 = Sunday, 1 = Monday, ..., 6 = Saturday (DAYS_OF_WEEK index)
  */
-export function getDayHeaderWithDate(dayIndex: number): string {
+export function getDayHeaderWithDate(dayIndex: number, weekOffset: number = 0): string {
   const dayName = DAYS_OF_WEEK[dayIndex];
 
   // Convert DAYS_OF_WEEK index (0=Sunday) to week index (0=Monday)
   const weekDayIndex = dayIndex === 0 ? 6 : dayIndex - 1;
-  const date = getWeekDate(weekDayIndex);
+  const date = getWeekDateWithOffset(weekDayIndex, weekOffset);
   const shortDate = formatShortDate(date);
 
   return `${dayName.substring(0, 3)} ${shortDate}`;
+}
+
+export function getWeekStartKey(weekOffset: number = 0): string {
+  const monday = getWeekDateWithOffset(0, weekOffset); // Monday
+  return monday.toISOString().split('T')[0];
+}
+
+export function getWeekRangeLabel(weekOffset: number = 0): string {
+  const monday = getWeekDateWithOffset(0, weekOffset);
+  const sunday = getWeekDateWithOffset(6, weekOffset);
+  return `Week of ${monday.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${sunday.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`;
 }

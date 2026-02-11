@@ -7,16 +7,18 @@ import { toast } from 'sonner';
 
 import { CreateProjectWizard } from '@/components/dashboard/CreateProjectWizard';
 import { JoinProjectModal } from '@/components/dashboard/JoinProjectModal';
+import { MyTasksPanel } from '@/components/dashboard/MyTasksPanel';
 import { ProjectList } from '@/components/dashboard/ProjectList';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { DashboardProject } from '@/types';
+import { DashboardAssignedTask, DashboardProject } from '@/types';
 
 interface DashboardShellProps {
   userName: string;
   userEmail: string;
   userAvatarUrl: string | null;
   projects: DashboardProject[];
+  myTasks: DashboardAssignedTask[];
 }
 
 function getInitials(nameOrEmail: string) {
@@ -28,7 +30,7 @@ function getInitials(nameOrEmail: string) {
     .join('');
 }
 
-export function DashboardShell({ userName, userEmail, userAvatarUrl, projects }: DashboardShellProps) {
+export function DashboardShell({ userName, userEmail, userAvatarUrl, projects, myTasks }: DashboardShellProps) {
   const [createOpen, setCreateOpen] = useState(false);
   const [joinOpen, setJoinOpen] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
@@ -76,6 +78,10 @@ export function DashboardShell({ userName, userEmail, userAvatarUrl, projects }:
         <section className="space-y-4">
           <h1 className="text-3xl font-black tracking-tight text-slate-900">Your Projects</h1>
           <ProjectList projects={projects} onCreateProject={() => setCreateOpen(true)} onJoinProject={() => setJoinOpen(true)} />
+        </section>
+
+        <section>
+          <MyTasksPanel tasks={myTasks} />
         </section>
       </div>
 

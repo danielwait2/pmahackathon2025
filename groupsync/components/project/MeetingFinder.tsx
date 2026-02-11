@@ -13,7 +13,7 @@ import {
   formatTimeSlot,
   formatHour,
   DAYS_OF_WEEK,
-  getWeekDate,
+  getWeekDateWithOffset,
   type UserAvailability,
   type TimeSlot,
 } from './availability-utils';
@@ -21,11 +21,18 @@ import {
 interface MeetingFinderProps {
   projectId: string;
   availabilities: UserAvailability[];
-  minDuration?: number;
+  minDuration?: number; // In hours (supports halves, e.g. 0.5, 1.5)
   onMeetingScheduled?: () => void;
+  weekOffset?: number;
 }
 
-export function MeetingFinder({ projectId, availabilities, minDuration = 1, onMeetingScheduled }: MeetingFinderProps) {
+export function MeetingFinder({
+  projectId,
+  availabilities,
+  minDuration = 1,
+  onMeetingScheduled,
+  weekOffset = 0,
+}: MeetingFinderProps) {
   const [selectedDuration, setSelectedDuration] = useState(minDuration);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedSlot, setSelectedSlot] = useState<TimeSlot | null>(null);
@@ -69,7 +76,7 @@ export function MeetingFinder({ projectId, availabilities, minDuration = 1, onMe
     // dayIndex is 0=Sunday, 1=Monday, etc. from DAYS_OF_WEEK
     // Convert to week day index (0=Monday)
     const weekDayIndex = dayIndex === 0 ? 6 : dayIndex - 1;
-    const date = getWeekDate(weekDayIndex);
+    const date = getWeekDateWithOffset(weekDayIndex, weekOffset);
     return date.toISOString().split('T')[0]; // YYYY-MM-DD
   };
 
@@ -77,6 +84,13 @@ export function MeetingFinder({ projectId, availabilities, minDuration = 1, onMe
     const wholeHour = Math.floor(hour);
     const minutes = (hour % 1) * 60;
     return `${String(wholeHour).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+  };
+
+  const durationLabel = (durationHours: number) => {
+    const minutes = Math.round(durationHours * 60);
+    if (minutes < 60) return `${minutes} min`;
+    if (minutes % 60 === 0) return `${minutes / 60} hour${minutes === 60 ? '' : 's'}`;
+    return `${minutes / 60} hours`;
   };
 
   if (totalParticipants === 0) {
@@ -111,14 +125,14 @@ export function MeetingFinder({ projectId, availabilities, minDuration = 1, onMe
           <div className="flex items-center gap-3">
             <label className="text-sm font-medium text-slate-700">Minimum duration:</label>
             <div className="flex gap-2">
-              {[1, 2, 3, 4].map((hours) => (
+              {[0.5, 1, 1.5, 2].map((hours) => (
                 <Button
                   key={hours}
                   variant={selectedDuration === hours ? 'default' : 'outline'}
                   size="sm"
                   onClick={() => setSelectedDuration(hours)}
                 >
-                  {hours}h
+                  {hours === 0.5 ? '30m' : `${hours}h`}
                 </Button>
               ))}
             </div>
@@ -138,7 +152,7 @@ export function MeetingFinder({ projectId, availabilities, minDuration = 1, onMe
             <div className="text-center py-8">
               <Calendar className="h-12 w-12 text-slate-300 mx-auto mb-3" />
               <p className="text-sm text-slate-600">
-                No common availability found for {selectedDuration}+ hour meetings.
+                No common availability found for {durationLabel(selectedDuration)} meetings.
               </p>
               <p className="text-xs text-slate-500 mt-2">
                 Try a shorter duration or have team members update their availability.
@@ -169,7 +183,7 @@ export function MeetingFinder({ projectId, availabilities, minDuration = 1, onMe
                                 </div>
                                 <div className="flex items-center gap-1 mt-1 text-xs text-slate-600">
                                   <Clock className="h-3 w-3" />
-                                  {duration} hour{duration !== 1 ? 's' : ''}
+                                  {durationLabel(duration)}
                                 </div>
                               </div>
                               <div className="flex flex-col gap-2 items-end">
@@ -226,6 +240,7 @@ export function MeetingFinder({ projectId, availabilities, minDuration = 1, onMe
           prefilledDate={getSlotDateString(selectedSlot.day)}
           prefilledStartTime={getSlotTimeString(selectedSlot.startHour)}
           prefilledEndTime={getSlotTimeString(selectedSlot.endHour)}
+          prefilledDurationMinutes={Math.round((selectedSlot.endHour - selectedSlot.startHour) * 60)}
         />
       )}
     </div>

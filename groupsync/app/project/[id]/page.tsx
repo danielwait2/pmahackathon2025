@@ -53,6 +53,8 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
     notFound();
   }
 
+  const currentWeekStart = getCurrentWeekStart();
+
   return (
     <main className="min-h-screen bg-slate-50">
       <div className="mx-auto max-w-7xl space-y-6 px-4 py-8 sm:px-6 lg:px-8">
@@ -93,13 +95,7 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
           }))}
           teamAgreement={project.teamAgreement}
           availabilities={project.availability.map((avail) => {
-            let slots: { day: number; startHour: number; endHour: number }[] = [];
-            try {
-              const parsed = JSON.parse(avail.slots);
-              slots = Array.isArray(parsed) ? parsed : [];
-            } catch {
-              slots = [];
-            }
+            const slots = extractWeekSlots(avail.slots, currentWeekStart);
             return {
               userId: avail.userId || avail.guestMemberId || '',
               userName: avail.user?.name || avail.guestMember?.guestName || 'Guest',
@@ -107,13 +103,39 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
             };
           })}
           currentUserAvailability={
-            project.availability.find((a) =>
+            JSON.stringify(extractWeekSlots(project.availability.find((a) =>
               (member.isGuest && a.guestMemberId === member.memberId) ||
               (!member.isGuest && a.userId === member.userId)
-            )?.slots ?? '[]'
+            )?.slots ?? '[]', currentWeekStart))
           }
         />
       </div>
     </main>
   );
+}
+
+function getCurrentWeekStart(): string {
+  const now = new Date();
+  const day = now.getDay();
+  const diff = day === 0 ? -6 : 1 - day;
+  const monday = new Date(now);
+  monday.setHours(0, 0, 0, 0);
+  monday.setDate(now.getDate() + diff);
+  return monday.toISOString().split('T')[0];
+}
+
+function extractWeekSlots(raw: string, weekStart: string): { day: number; startHour: number; endHour: number }[] {
+  try {
+    const parsed = JSON.parse(raw);
+    if (Array.isArray(parsed)) {
+      return weekStart === getCurrentWeekStart() ? parsed : [];
+    }
+    if (parsed && typeof parsed === 'object') {
+      const weekSlots = (parsed as Record<string, unknown>)[weekStart];
+      return Array.isArray(weekSlots) ? (weekSlots as { day: number; startHour: number; endHour: number }[]) : [];
+    }
+    return [];
+  } catch {
+    return [];
+  }
 }
