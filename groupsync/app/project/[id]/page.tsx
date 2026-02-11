@@ -51,12 +51,12 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
           },
         },
       },
-      teamAgreement: {
-        select: {
-          responseTimeHours: true,
-          meetingFrequency: true,
-          communicationChannel: true,
-          qualityStandards: true,
+      teamAgreement: true,
+      availability: {
+        include: {
+          user: {
+            select: { id: true, name: true },
+          },
         },
       },
     },
@@ -77,6 +77,9 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
           memberCount={project.members.length}
         />
         <ProjectTabs
+          projectId={project.id}
+          currentUserId={session.user.id}
+          isOwner={project.createdById === session.user.id}
           tasks={project.tasks.map((task) => ({
             id: task.id,
             title: task.title,
@@ -84,6 +87,8 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
             status: task.status,
             dueDate: task.dueDate?.toISOString() ?? null,
             assigneeName: task.assignee?.name ?? null,
+            assignedTo: task.assignedTo,
+            createdAt: task.createdAt.toISOString(),
           }))}
           members={project.members.map((member) => ({
             id: member.user.id,
@@ -94,6 +99,14 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
             joinedAt: member.joinedAt.toISOString(),
           }))}
           teamAgreement={project.teamAgreement}
+          availabilities={project.availability.map((avail) => ({
+            userId: avail.userId,
+            userName: avail.user.name,
+            slots: JSON.parse(avail.slots),
+          }))}
+          currentUserAvailability={
+            project.availability.find((a) => a.userId === session.user.id)?.slots ?? '[]'
+          }
         />
       </div>
     </main>

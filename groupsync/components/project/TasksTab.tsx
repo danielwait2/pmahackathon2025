@@ -1,88 +1,131 @@
-import { format } from 'date-fns';
-import { CheckCircle2, CircleDashed, LoaderCircle } from 'lucide-react';
+'use client';
 
-import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useState } from 'react';
+import { TaskBoard } from './TaskBoard';
+import { AddTaskModal, type TaskFormData, type ProjectMember } from './AddTaskModal';
+import { TaskDetailModal, type TaskDetail } from './TaskDetailModal';
 
 export interface ProjectTaskItem {
   id: string;
   title: string;
   description: string | null;
-  status: string;
+  status: 'todo' | 'in_progress' | 'done';
   dueDate: string | null;
   assigneeName: string | null;
+  assignedTo: string | null;
+  createdAt: string;
 }
 
 interface TasksTabProps {
+  projectId: string;
   tasks: ProjectTaskItem[];
+  members: ProjectMember[];
+  onRefresh: () => void;
 }
 
-const statusLabels: Record<string, string> = {
-  todo: 'To Do',
-  in_progress: 'In Progress',
-  done: 'Done',
-};
+export function TasksTab({ projectId, tasks, members, onRefresh }: TasksTabProps) {
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
+  const [defaultStatus, setDefaultStatus] = useState<'todo' | 'in_progress' | 'done'>('todo');
 
-const statusIcons = {
-  todo: CircleDashed,
-  in_progress: LoaderCircle,
-  done: CheckCircle2,
-};
+  const selectedTask = tasks.find((t) => t.id === selectedTaskId);
 
-const columns: Array<'todo' | 'in_progress' | 'done'> = ['todo', 'in_progress', 'done'];
+  const handleAddTask = (status: 'todo' | 'in_progress' | 'done') => {
+    setDefaultStatus(status);
+    setIsAddModalOpen(true);
+  };
 
-export function TasksTab({ tasks }: TasksTabProps) {
-  const grouped = columns.map((status) => ({
-    status,
-    items: tasks.filter((task) => task.status === status),
-  }));
+  const handleTaskClick = (taskId: string) => {
+    setSelectedTaskId(taskId);
+  };
 
-  if (!tasks.length) {
-    return (
-      <Card>
-        <CardContent className="p-6 text-sm text-slate-600">
-          No tasks yet. Task creation APIs are now in place, so you can wire add/edit UI next.
-        </CardContent>
-      </Card>
-    );
-  }
+  const handleCreateTask = async (data: TaskFormData) => {
+    const response = await fetch('/api/tasks', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        projectId,
+        title: data.title,
+        description: data.description || null,
+        assignedTo: data.assignedTo || null,
+        status: data.status,
+        dueDate: data.dueDate || null,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to create task');
+    }
+
+    onRefresh();
+  };
+
+  const handleUpdateTaskStatus = async (taskId: string, newStatus: 'todo' | 'in_progress' | 'done') => {
+    const response = await fetch(`/api/tasks/${taskId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: newStatus }),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to update task');
+    }
+
+    onRefresh();
+    setSelectedTaskId(null);
+  };
+
+  const handleDeleteTask = async (taskId: string) => {
+    if (!confirm('Are you sure you want to delete this task?')) return;
+
+    const response = await fetch(`/api/tasks/${taskId}`, {
+      method: 'DELETE',
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to delete task');
+    }
+
+    onRefresh();
+    setSelectedTaskId(null);
+  };
 
   return (
-    <div className="grid gap-4 lg:grid-cols-3">
-      {grouped.map(({ status, items }) => {
-        const Icon = statusIcons[status];
-        return (
-          <Card key={status}>
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center justify-between text-base">
-                <span className="inline-flex items-center gap-2">
-                  <Icon className="h-4 w-4" />
-                  {statusLabels[status]}
-                </span>
-                <Badge variant="outline">{items.length}</Badge>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {items.length === 0 ? (
-                <p className="text-sm text-slate-500">No tasks</p>
-              ) : (
-                items.map((task) => (
-                  <div key={task.id} className="rounded-lg border border-slate-200 p-3">
-                    <p className="font-medium text-slate-900">{task.title}</p>
-                    {task.description ? <p className="mt-1 text-sm text-slate-600">{task.description}</p> : null}
-                    <div className="mt-2 flex flex-wrap gap-2 text-xs text-slate-500">
-                      <span>{task.assigneeName ?? 'Unassigned'}</span>
-                      <span>
-                        {task.dueDate ? `Due ${format(new Date(task.dueDate), 'MMM d, yyyy')}` : 'No due date'}
-                      </span>
-                    </div>
-                  </div>
-                ))
-              )}
-            </CardContent>
-          </Card>
-        );
-      })}
-    </div>
+    <>
+      <TaskBoard
+        tasks={tasks}
+        onTaskClick={handleTaskClick}
+        onAddTask={handleAddTask}
+        onTaskMove={handleUpdateTaskStatus}
+      />
+
+      <AddTaskModal
+        open={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
+        projectId={projectId}
+        members={members}
+        onSubmit={handleCreateTask}
+        initialData={{ status: defaultStatus }}
+        mode="create"
+      />
+
+      {selectedTask && (
+        <TaskDetailModal
+          open={!!selectedTask}
+          onClose={() => setSelectedTaskId(null)}
+          task={{
+            id: selectedTask.id,
+            title: selectedTask.title,
+            description: selectedTask.description,
+            status: selectedTask.status,
+            dueDate: selectedTask.dueDate,
+            assigneeName: selectedTask.assigneeName,
+            createdAt: selectedTask.createdAt,
+          }}
+          onStatusChange={handleUpdateTaskStatus}
+          onDelete={handleDeleteTask}
+        />
+      )}
+    </>
   );
 }

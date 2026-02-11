@@ -43,11 +43,11 @@ The following components were deleted and need rebuilding:
 
 ### 2.2 Tasks Tab
 - [x] `components/project/TasksTab.tsx` — Container for task views
-- [ ] `components/project/TaskBoard.tsx` — Kanban board (todo/in_progress/done columns)
-- [ ] `components/project/TaskCard.tsx` — Individual task card with drag-and-drop
-- [ ] `components/project/TaskListView.tsx` — Mobile-friendly list view
-- [ ] `components/project/AddTaskModal.tsx` — Create/edit tasks
-- [ ] `components/project/TaskDetailModal.tsx` — View task details
+- [x] `components/project/TaskBoard.tsx` — Kanban board (todo/in_progress/done columns)
+- [x] `components/project/TaskCard.tsx` — Individual task card (clickable, with metadata)
+- [x] `components/project/TaskListView.tsx` — Mobile-friendly list view
+- [x] `components/project/AddTaskModal.tsx` — Create/edit tasks
+- [x] `components/project/TaskDetailModal.tsx` — View task details
 - [x] **API Route:** `POST /api/tasks` — Create task
 - [x] **API Route:** `PATCH /api/tasks/[id]` — Update task (status, assignee, etc.)
 - [x] **API Route:** `DELETE /api/tasks/[id]` — Delete task
@@ -60,21 +60,22 @@ The following components were deleted and need rebuilding:
 
 ### 2.4 Availability Tab
 - [x] `components/project/AvailabilityTab.tsx` — Container
-- [ ] `components/project/AvailabilityGrid.tsx` — Weekly calendar grid (click/drag time slots)
-- [ ] `components/project/availability-utils.ts` — Slot formatting helpers
-- [ ] `components/project/TeamAvailability.tsx` — Show all members' availability
-- [ ] `components/project/MeetingFinder.tsx` — Algorithm to find best meeting times
-- [ ] **API Route:** `POST /api/availability` — Save user's availability slots
-- [ ] **API Route:** `GET /api/availability/[projectId]` — Get all members' availability
+- [x] `components/project/AvailabilityGrid.tsx` — Weekly calendar grid (click/drag time slots)
+- [x] `components/project/availability-utils.ts` — Slot formatting helpers
+- [x] `components/project/TeamAvailability.tsx` — Show all members' availability (heatmap view)
+- [x] `components/project/MeetingFinder.tsx` — Algorithm to find best meeting times
+- [x] **API Route:** `POST /api/availability` — Save user's availability slots
+- [x] **API Route:** `GET /api/availability/[projectId]` — Get all members' availability
 
 ### 2.5 Team Tab
-- [x] `components/project/TeamTab.tsx` — Container
-- [ ] `components/project/TeamAgreement.tsx` — Display team agreement (was NOT deleted - check if it exists)
-- [ ] `components/project/TeamAgreementEditor.tsx` — Edit agreement (owner only) (was NOT deleted - check if it exists)
-- [ ] Show member list with roles, join dates
-- [ ] "I Agree" button for members to acknowledge agreement
-- [ ] **API Route:** `PATCH /api/team-agreement/[projectId]` — Update agreement
-- [ ] **API Route:** `POST /api/team-agreement/[projectId]/agree` — Member agrees to terms
+- [x] `components/project/TeamTab.tsx` — Container (includes member list with roles, join dates)
+- [x] `components/project/TeamAgreement.tsx` — Display team agreement with "I Agree" functionality
+- [x] `components/project/TeamAgreementEditor.tsx` — Edit agreement (owner only)
+- [x] Show member list with roles, join dates (in TeamTab.tsx)
+- [x] "I Agree" button for members to acknowledge agreement
+- [x] **API Route:** `PATCH /api/team-agreement/[projectId]` — Update agreement
+- [x] **API Route:** `GET /api/team-agreement/[projectId]` — Get team agreement
+- [x] **API Route:** `POST /api/team-agreement/[projectId]/agree` — Member agrees to terms
 
 ---
 
@@ -123,8 +124,9 @@ All API routes should:
 
 ---
 
-## Files Created So Far (Phase 3 Complete)
+## Files Created So Far
 
+### Phase 3 - Dashboard (Complete)
 ✅ `app/api/projects/route.ts`
 ✅ `app/api/projects/join/route.ts`
 ✅ `components/dashboard/EmptyState.tsx`
@@ -134,6 +136,27 @@ All API routes should:
 ✅ `components/dashboard/CreateProjectWizard.tsx`
 ✅ `components/dashboard/JoinProjectModal.tsx`
 ✅ `app/dashboard/page.tsx`
+
+### Phase 4 - Tasks Tab (Complete)
+✅ `components/project/TaskBoard.tsx`
+✅ `components/project/TaskCard.tsx`
+✅ `components/project/TaskListView.tsx`
+✅ `components/project/AddTaskModal.tsx`
+✅ `components/project/TaskDetailModal.tsx`
+
+### Phase 4 - Availability Tab (Complete)
+✅ `components/project/availability-utils.ts`
+✅ `components/project/AvailabilityGrid.tsx`
+✅ `components/project/TeamAvailability.tsx`
+✅ `components/project/MeetingFinder.tsx`
+✅ `app/api/availability/route.ts`
+✅ `app/api/availability/[projectId]/route.ts`
+
+### Phase 4 - Team Tab (Complete)
+✅ `components/project/TeamAgreement.tsx`
+✅ `components/project/TeamAgreementEditor.tsx`
+✅ `app/api/team-agreement/[projectId]/route.ts` (PATCH & GET)
+✅ `app/api/team-agreement/[projectId]/agree/route.ts` (POST)
 
 ---
 
