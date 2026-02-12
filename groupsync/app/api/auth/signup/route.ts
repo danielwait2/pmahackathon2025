@@ -31,7 +31,7 @@ export async function POST(request: Request) {
     const message = error instanceof Error ? error.message : '';
     if (message.includes('DATABASE_URL')) {
       return NextResponse.json(
-        { error: 'Server misconfiguration: DATABASE_URL is missing. Set DATABASE_URL in your deployment environment variables and redeploy.' },
+        { error: 'Server misconfiguration: DATABASE_URL is missing. Configure .env.local and retry.' },
         { status: 500 },
       );
     }
