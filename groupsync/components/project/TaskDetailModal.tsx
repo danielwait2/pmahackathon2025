@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { format } from 'date-fns';
 import { Calendar, CheckCircle2, CircleDashed, LoaderCircle, Trash2, User, Edit } from 'lucide-react';
 
@@ -8,7 +9,6 @@ import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -21,6 +21,7 @@ export interface TaskDetail {
   description: string | null;
   status: 'todo' | 'in_progress' | 'done';
   dueDate: string | null;
+  reminderDate: string | null;
   assigneeName: string | null;
   createdAt: string;
 }
@@ -32,6 +33,7 @@ interface TaskDetailModalProps {
   onEdit?: (taskId: string) => void;
   onDelete?: (taskId: string) => void;
   onStatusChange?: (taskId: string, newStatus: 'todo' | 'in_progress' | 'done') => void;
+  onUpdateTaskDates?: (taskId: string, dueDate: string | null, reminderDate: string | null) => Promise<void>;
 }
 
 const statusConfig = {
@@ -59,7 +61,20 @@ export function TaskDetailModal({
   onEdit,
   onDelete,
   onStatusChange,
+  onUpdateTaskDates,
 }: TaskDetailModalProps) {
+  const [editingDates, setEditingDates] = useState(false);
+  const [dueDateInput, setDueDateInput] = useState(task?.dueDate ? toDateInput(task.dueDate) : '');
+  const [reminderDateInput, setReminderDateInput] = useState(task?.reminderDate ? toDateTimeInput(task.reminderDate) : '');
+  const [savingDates, setSavingDates] = useState(false);
+
+  useEffect(() => {
+    if (!task) return;
+    setDueDateInput(task.dueDate ? toDateInput(task.dueDate) : '');
+    setReminderDateInput(task.reminderDate ? toDateTimeInput(task.reminderDate) : '');
+    setEditingDates(false);
+  }, [task]);
+
   if (!task) return null;
 
   const config = statusConfig[task.status];
@@ -67,6 +82,21 @@ export function TaskDetailModal({
 
   const handleStatusChange = (newStatus: 'todo' | 'in_progress' | 'done') => {
     onStatusChange?.(task.id, newStatus);
+  };
+
+  const handleSaveDates = async () => {
+    if (!onUpdateTaskDates) return;
+    setSavingDates(true);
+    try {
+      await onUpdateTaskDates(
+        task.id,
+        dueDateInput || null,
+        reminderDateInput ? new Date(reminderDateInput).toISOString() : null
+      );
+      setEditingDates(false);
+    } finally {
+      setSavingDates(false);
+    }
   };
 
   return (
@@ -117,6 +147,18 @@ export function TaskDetailModal({
               </div>
             )}
 
+            {task.reminderDate && (
+              <div className="flex items-center gap-3">
+                <Calendar className="h-4 w-4 text-slate-500" />
+                <div>
+                  <p className="text-xs text-slate-500">Reminder</p>
+                  <p className="text-sm font-medium">
+                    {format(new Date(task.reminderDate), 'MMMM d, yyyy h:mm a')}
+                  </p>
+                </div>
+              </div>
+            )}
+
             {/* Created Date */}
             <div className="flex items-center gap-3">
               <Calendar className="h-4 w-4 text-slate-500" />
@@ -128,6 +170,66 @@ export function TaskDetailModal({
               </div>
             </div>
           </div>
+
+          {onUpdateTaskDates && (
+            <>
+              <Separator />
+              {editingDates ? (
+                <div className="space-y-3">
+                  <h4 className="text-sm font-medium text-slate-700">Edit Dates</h4>
+                  <div className="space-y-2">
+                    <label className="text-xs text-slate-500" htmlFor="task-due-date">Due date</label>
+                    <input
+                      id="task-due-date"
+                      type="date"
+                      value={dueDateInput}
+                      onChange={(event) => setDueDateInput(event.target.value)}
+                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <label className="text-xs text-slate-500" htmlFor="task-reminder-date">Reminder</label>
+                      {reminderDateInput && (
+                        <Button type="button" variant="ghost" size="sm" onClick={() => setReminderDateInput('')}>
+                          Clear
+                        </Button>
+                      )}
+                    </div>
+                    <input
+                      id="task-reminder-date"
+                      type="datetime-local"
+                      value={reminderDateInput}
+                      onChange={(event) => setReminderDateInput(event.target.value)}
+                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                    />
+                  </div>
+                  <div className="flex gap-2">
+                    <Button type="button" size="sm" onClick={handleSaveDates} disabled={savingDates}>
+                      {savingDates ? 'Saving...' : 'Save Dates'}
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setDueDateInput(task.dueDate ? toDateInput(task.dueDate) : '');
+                        setReminderDateInput(task.reminderDate ? toDateTimeInput(task.reminderDate) : '');
+                        setEditingDates(false);
+                      }}
+                      disabled={savingDates}
+                    >
+                      Cancel
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <Button type="button" variant="outline" size="sm" onClick={() => setEditingDates(true)}>
+                  Edit Dates & Reminder
+                </Button>
+              )}
+            </>
+          )}
 
           {/* Status Change Buttons */}
           {onStatusChange && task.status !== 'done' && (
@@ -185,4 +287,18 @@ export function TaskDetailModal({
       </DialogContent>
     </Dialog>
   );
+}
+
+function toDateInput(value: string): string {
+  return new Date(value).toISOString().slice(0, 10);
+}
+
+function toDateTimeInput(value: string): string {
+  const date = new Date(value);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  const hours = String(date.getHours()).padStart(2, '0');
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+  return `${year}-${month}-${day}T${hours}:${minutes}`;
 }

@@ -13,7 +13,6 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 
 export interface TaskFormData {
@@ -22,6 +21,7 @@ export interface TaskFormData {
   assignedTo: string;
   status: 'todo' | 'in_progress' | 'done';
   dueDate: string;
+  reminderDate: string;
 }
 
 export interface ProjectMember {
@@ -32,7 +32,6 @@ export interface ProjectMember {
 interface AddTaskModalProps {
   open: boolean;
   onClose: () => void;
-  projectId: string;
   members: ProjectMember[];
   onSubmit: (data: TaskFormData) => Promise<void>;
   initialData?: Partial<TaskFormData>;
@@ -42,7 +41,6 @@ interface AddTaskModalProps {
 export function AddTaskModal({
   open,
   onClose,
-  projectId,
   members,
   onSubmit,
   initialData,
@@ -55,6 +53,7 @@ export function AddTaskModal({
     assignedTo: initialData?.assignedTo || '',
     status: initialData?.status || 'todo',
     dueDate: initialData?.dueDate || '',
+    reminderDate: initialData?.reminderDate || '',
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -70,6 +69,7 @@ export function AddTaskModal({
         assignedTo: '',
         status: 'todo',
         dueDate: '',
+        reminderDate: '',
       });
     } catch (error) {
       console.error('Failed to submit task:', error);
@@ -160,7 +160,35 @@ export function AddTaskModal({
                 id="dueDate"
                 type="date"
                 value={formData.dueDate}
-                onChange={(e) => setFormData({ ...formData, dueDate: e.target.value })}
+                onChange={(e) => {
+                  const nextDueDate = e.target.value;
+                  const nextReminder = formData.reminderDate || !nextDueDate
+                    ? formData.reminderDate
+                    : getDefaultReminderDateTime(nextDueDate);
+                  setFormData({ ...formData, dueDate: nextDueDate, reminderDate: nextReminder });
+                }}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="reminderDate">Reminder (optional)</Label>
+                {formData.reminderDate && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setFormData({ ...formData, reminderDate: '' })}
+                  >
+                    Clear
+                  </Button>
+                )}
+              </div>
+              <Input
+                id="reminderDate"
+                type="datetime-local"
+                value={formData.reminderDate}
+                onChange={(e) => setFormData({ ...formData, reminderDate: e.target.value })}
               />
             </div>
           </div>
@@ -177,4 +205,19 @@ export function AddTaskModal({
       </DialogContent>
     </Dialog>
   );
+}
+
+function getDefaultReminderDateTime(dueDate: string): string {
+  const reminder = new Date(`${dueDate}T09:00:00`);
+  reminder.setDate(reminder.getDate() - 1);
+  return formatAsDateTimeLocal(reminder);
+}
+
+function formatAsDateTimeLocal(value: Date): string {
+  const year = value.getFullYear();
+  const month = String(value.getMonth() + 1).padStart(2, '0');
+  const day = String(value.getDate()).padStart(2, '0');
+  const hours = String(value.getHours()).padStart(2, '0');
+  const minutes = String(value.getMinutes()).padStart(2, '0');
+  return `${year}-${month}-${day}T${hours}:${minutes}`;
 }

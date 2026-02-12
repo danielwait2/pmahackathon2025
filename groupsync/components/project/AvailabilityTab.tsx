@@ -131,8 +131,7 @@ export function AvailabilityTab({
       <Tabs defaultValue="my-availability" className="w-full">
         <TabsList>
           <TabsTrigger value="my-availability">My Availability</TabsTrigger>
-          <TabsTrigger value="team-view">Team View</TabsTrigger>
-          <TabsTrigger value="meeting-finder">Meeting Finder</TabsTrigger>
+          <TabsTrigger value="schedule">Schedule</TabsTrigger>
         </TabsList>
 
         <TabsContent value="my-availability" className="space-y-4">
@@ -151,23 +150,26 @@ export function AvailabilityTab({
           )}
         </TabsContent>
 
-        <TabsContent value="team-view">
-          <TeamAvailability availabilities={teamData} weekOffset={weekOffset} />
-        </TabsContent>
-
-        <TabsContent value="meeting-finder" className="space-y-4">
-          <UpcomingMeetings
-            projectId={projectId}
-            currentUserId={currentUserId}
-            refreshTrigger={meetingRefreshTrigger}
-          />
-          <MeetingFinder
-            projectId={projectId}
-            availabilities={teamData}
-            minDuration={1}
-            onMeetingScheduled={handleMeetingScheduled}
-            weekOffset={weekOffset}
-          />
+        <TabsContent value="schedule" className="space-y-4">
+          <div className="grid gap-4 xl:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)]">
+            <div className="min-w-0">
+              <TeamAvailability availabilities={teamData} weekOffset={weekOffset} compact />
+            </div>
+            <div className="space-y-4 min-w-0">
+              <MeetingFinder
+                projectId={projectId}
+                availabilities={teamData}
+                minDuration={1}
+                onMeetingScheduled={handleMeetingScheduled}
+                weekOffset={weekOffset}
+              />
+              <UpcomingMeetings
+                projectId={projectId}
+                currentUserId={currentUserId}
+                refreshTrigger={meetingRefreshTrigger}
+              />
+            </div>
+          </div>
         </TabsContent>
       </Tabs>
     </div>

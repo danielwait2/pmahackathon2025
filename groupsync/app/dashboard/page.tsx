@@ -31,6 +31,11 @@ export default async function DashboardPage() {
     const [projectRows, taskRows, memberRows, assignedTaskRows] = await Promise.all([
       prisma.project.findMany({
         where: { id: { in: projectIds } },
+        include: {
+          class: {
+            select: { id: true, name: true },
+          },
+        },
         orderBy: { createdAt: 'desc' },
       }),
       prisma.task.findMany({
@@ -98,6 +103,8 @@ export default async function DashboardPage() {
         name: project.name,
         description: project.description,
         deadline: project.deadline?.toISOString() ?? null,
+        classId: project.classId,
+        className: project.class?.name ?? null,
         created_by: project.createdById,
         invite_code: project.inviteCode,
         created_at: project.createdAt.toISOString(),
@@ -113,6 +120,7 @@ export default async function DashboardPage() {
       title: task.title,
       status: task.status as 'todo' | 'in_progress' | 'done',
       dueDate: task.dueDate?.toISOString() ?? null,
+      reminderDate: task.reminderDate?.toISOString() ?? null,
       projectId: task.project.id,
       projectName: task.project.name,
     }));

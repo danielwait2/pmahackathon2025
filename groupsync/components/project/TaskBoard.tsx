@@ -1,12 +1,11 @@
 'use client';
-
 import { useState } from 'react';
 import { CheckCircle2, CircleDashed, LoaderCircle, Plus } from 'lucide-react';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { TaskCard, type TaskCardProps } from './TaskCard';
+import { TaskCard } from './TaskCard';
 
 export interface TaskBoardTask {
   id: string;
@@ -14,6 +13,7 @@ export interface TaskBoardTask {
   description: string | null;
   status: 'todo' | 'in_progress' | 'done';
   dueDate: string | null;
+  reminderDate: string | null;
   assigneeName: string | null;
 }
 
@@ -45,17 +45,12 @@ const statusConfig = {
 const columns: Array<'todo' | 'in_progress' | 'done'> = ['todo', 'in_progress', 'done'];
 
 export function TaskBoard({ tasks, onTaskClick, onAddTask, onTaskMove }: TaskBoardProps) {
-  const [draggedTaskId, setDraggedTaskId] = useState<string | null>(null);
   const [dragOverColumn, setDragOverColumn] = useState<string | null>(null);
 
   const groupedTasks = columns.map((status) => ({
     status,
     tasks: tasks.filter((task) => task.status === status),
   }));
-
-  const handleDragStart = (taskId: string) => {
-    setDraggedTaskId(taskId);
-  };
 
   const handleDragOver = (e: React.DragEvent, status: string) => {
     e.preventDefault();
@@ -78,7 +73,6 @@ export function TaskBoard({ tasks, onTaskClick, onAddTask, onTaskMove }: TaskBoa
       }
     }
 
-    setDraggedTaskId(null);
     setDragOverColumn(null);
   };
 
@@ -123,9 +117,10 @@ export function TaskBoard({ tasks, onTaskClick, onAddTask, onTaskMove }: TaskBoa
                     description={task.description}
                     status={task.status}
                     dueDate={task.dueDate}
+                    reminderDate={task.reminderDate}
                     assigneeName={task.assigneeName}
                     onClick={onTaskClick}
-                    onDragStart={onTaskMove ? handleDragStart : undefined}
+                    onDragStart={onTaskMove ? () => undefined : undefined}
                   />
                 ))
               )}

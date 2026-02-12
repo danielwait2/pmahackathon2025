@@ -1,10 +1,16 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { Calendar, Clock, Trash2, User } from 'lucide-react';
+import { useCallback, useEffect, useState } from 'react';
+import { Calendar, CalendarPlus, Clock, ExternalLink, Trash2, User } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import {
+  createCalendarEventFromMeeting,
+  downloadIcsFile,
+  getGoogleCalendarUrl,
+  getOutlookCalendarUrl,
+} from '@/lib/calendar-utils';
 
 interface Meeting {
   id: string;
@@ -30,7 +36,7 @@ export function UpcomingMeetings({ projectId, currentUserId, refreshTrigger = 0 
   const [isLoading, setIsLoading] = useState(true);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
-  const fetchMeetings = async () => {
+  const fetchMeetings = useCallback(async () => {
     setIsLoading(true);
     try {
       const response = await fetch(`/api/meetings?projectId=${projectId}`);
@@ -43,11 +49,11 @@ export function UpcomingMeetings({ projectId, currentUserId, refreshTrigger = 0 
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [projectId]);
 
   useEffect(() => {
-    fetchMeetings();
-  }, [projectId, refreshTrigger]);
+    void fetchMeetings();
+  }, [fetchMeetings, refreshTrigger]);
 
   const handleDelete = async (meetingId: string) => {
     if (!confirm('Are you sure you want to delete this meeting?')) {
@@ -66,7 +72,7 @@ export function UpcomingMeetings({ projectId, currentUserId, refreshTrigger = 0 
         const data = await response.json();
         alert(data.error || 'Failed to delete meeting');
       }
-    } catch (error) {
+    } catch {
       alert('Failed to delete meeting');
     } finally {
       setDeletingId(null);
@@ -170,6 +176,44 @@ export function UpcomingMeetings({ projectId, currentUserId, refreshTrigger = 0 
                     </div>
 
                     <div className="flex items-start gap-2">
+                      <div className="hidden md:flex items-center gap-1">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="h-8"
+                          onClick={() => {
+                            const event = createCalendarEventFromMeeting(meeting);
+                            window.open(getGoogleCalendarUrl(event), '_blank', 'noopener,noreferrer');
+                          }}
+                        >
+                          <ExternalLink className="h-3.5 w-3.5 mr-1" />
+                          Google
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="h-8"
+                          onClick={() => {
+                            const event = createCalendarEventFromMeeting(meeting);
+                            window.open(getOutlookCalendarUrl(event), '_blank', 'noopener,noreferrer');
+                          }}
+                        >
+                          <ExternalLink className="h-3.5 w-3.5 mr-1" />
+                          Outlook
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="h-8"
+                          onClick={() => {
+                            const event = createCalendarEventFromMeeting(meeting);
+                            downloadIcsFile(event, `${meeting.title.replace(/\s+/g, '-').toLowerCase() || 'meeting'}.ics`);
+                          }}
+                        >
+                          <CalendarPlus className="h-3.5 w-3.5 mr-1" />
+                          Apple
+                        </Button>
+                      </div>
                       {isCreator && (
                         <Badge variant="outline" className="text-xs">
                           You
@@ -187,6 +231,41 @@ export function UpcomingMeetings({ projectId, currentUserId, refreshTrigger = 0 
                         </Button>
                       )}
                     </div>
+                  </div>
+                  <div className="mt-3 flex md:hidden gap-1.5">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-8 text-xs"
+                      onClick={() => {
+                        const event = createCalendarEventFromMeeting(meeting);
+                        window.open(getGoogleCalendarUrl(event), '_blank', 'noopener,noreferrer');
+                      }}
+                    >
+                      Google
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-8 text-xs"
+                      onClick={() => {
+                        const event = createCalendarEventFromMeeting(meeting);
+                        window.open(getOutlookCalendarUrl(event), '_blank', 'noopener,noreferrer');
+                      }}
+                    >
+                      Outlook
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-8 text-xs"
+                      onClick={() => {
+                        const event = createCalendarEventFromMeeting(meeting);
+                        downloadIcsFile(event, `${meeting.title.replace(/\s+/g, '-').toLowerCase() || 'meeting'}.ics`);
+                      }}
+                    >
+                      Apple
+                    </Button>
                   </div>
                 </div>
               );

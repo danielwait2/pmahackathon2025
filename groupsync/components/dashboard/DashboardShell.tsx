@@ -9,6 +9,7 @@ import { CreateProjectWizard } from '@/components/dashboard/CreateProjectWizard'
 import { JoinProjectModal } from '@/components/dashboard/JoinProjectModal';
 import { MyTasksPanel } from '@/components/dashboard/MyTasksPanel';
 import { ProjectList } from '@/components/dashboard/ProjectList';
+import { OnboardingTour } from '@/components/onboarding/OnboardingTour';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { DashboardAssignedTask, DashboardProject } from '@/types';
@@ -47,6 +48,7 @@ export function DashboardShell({ userName, userEmail, userAvatarUrl, projects, m
 
   return (
     <>
+      <OnboardingTour />
       <div className="space-y-8">
         <header className="flex flex-col gap-4 rounded-xl border border-slate-200 bg-white p-4 sm:flex-row sm:items-center sm:justify-between sm:p-6">
           <div className="flex items-center gap-3">

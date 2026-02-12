@@ -25,6 +25,7 @@ export async function POST(request: Request) {
 
   const status = typeof body.status === 'string' && allowedStatuses.has(body.status) ? body.status : 'todo';
   const dueDate = body.dueDate ? new Date(body.dueDate) : null;
+  const reminderDate = body.reminderDate ? new Date(body.reminderDate) : null;
 
   const task = await prisma.task.create({
     data: {
@@ -34,6 +35,7 @@ export async function POST(request: Request) {
       assignedTo: typeof body.assignedTo === 'string' && body.assignedTo.length > 0 ? body.assignedTo : null,
       status,
       dueDate,
+      reminderDate,
       orderIndex: (currentMax._max.orderIndex ?? -1) + 1,
     },
   });

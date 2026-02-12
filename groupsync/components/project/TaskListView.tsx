@@ -12,6 +12,7 @@ export interface TaskListItem {
   description: string | null;
   status: 'todo' | 'in_progress' | 'done';
   dueDate: string | null;
+  reminderDate: string | null;
   assigneeName: string | null;
 }
 
@@ -88,6 +89,12 @@ export function TaskListView({ tasks, onTaskClick }: TaskListViewProps) {
                   <span className="inline-flex items-center gap-1">
                     <Clock className="h-3 w-3" />
                     Due {format(new Date(task.dueDate), 'MMM d, yyyy')}
+                  </span>
+                )}
+                {task.reminderDate && (
+                  <span className="inline-flex items-center gap-1">
+                    <Clock className="h-3 w-3" />
+                    Reminder {format(new Date(task.reminderDate), 'MMM d, h:mm a')}
                   </span>
                 )}
               </div>

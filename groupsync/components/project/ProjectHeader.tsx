@@ -3,17 +3,19 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { format } from 'date-fns';
-import { CalendarClock, Copy, Users, ArrowLeft } from 'lucide-react';
+import { ArrowLeft, BookOpen, CalendarClock, Copy, Users } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { formatClassNameForDisplay } from '@/lib/class-utils';
 import { ShareLinkManager } from './ShareLinkManager';
 
 interface ProjectHeaderProps {
   name: string;
   description: string | null;
   deadline: string | null;
+  className: string | null;
   inviteCode: string;
   memberCount: number;
   shareToken?: string | null;
@@ -21,7 +23,7 @@ interface ProjectHeaderProps {
   projectId?: string;
 }
 
-export function ProjectHeader({ name, description, deadline, inviteCode, memberCount, shareToken, isOwner, projectId }: ProjectHeaderProps) {
+export function ProjectHeader({ name, description, deadline, className, inviteCode, memberCount, shareToken, isOwner, projectId }: ProjectHeaderProps) {
   const [copying, setCopying] = useState(false);
 
   const copyCode = async () => {
@@ -70,6 +72,12 @@ export function ProjectHeader({ name, description, deadline, inviteCode, memberC
           <CalendarClock className="h-4 w-4" />
           {deadline ? format(new Date(deadline), 'MMMM d, yyyy') : 'No deadline set'}
         </span>
+        {className ? (
+          <span className="inline-flex items-center gap-1.5">
+            <BookOpen className="h-4 w-4" />
+            {formatClassNameForDisplay(className)}
+          </span>
+        ) : null}
       </div>
 
       {isOwner && projectId && (

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Calendar } from 'lucide-react';
+import { Calendar, CalendarPlus, CheckCircle2, ExternalLink } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -14,6 +14,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  createCalendarEventFromMeeting,
+  downloadIcsFile,
+  getGoogleCalendarUrl,
+  getOutlookCalendarUrl,
+} from '@/lib/calendar-utils';
 
 interface ScheduleMeetingModalProps {
   isOpen: boolean;
@@ -24,6 +30,14 @@ interface ScheduleMeetingModalProps {
   prefilledStartTime?: string;
   prefilledEndTime?: string;
   prefilledDurationMinutes?: number;
+}
+
+interface ScheduledMeeting {
+  id: string;
+  title: string;
+  date: string;
+  startTime: string;
+  endTime: string;
 }
 
 export function ScheduleMeetingModal({
@@ -48,6 +62,7 @@ export function ScheduleMeetingModal({
   const [endTime, setEndTime] = useState(calculateEndTime(prefilledStartTime, initialDuration));
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const [scheduledMeeting, setScheduledMeeting] = useState<ScheduledMeeting | null>(null);
 
   useEffect(() => {
     const nextDuration =
@@ -94,14 +109,22 @@ export function ScheduleMeetingModal({
         throw new Error(data.error || 'Failed to schedule meeting');
       }
 
+      const meeting = await response.json();
+      setScheduledMeeting({
+        id: meeting.id,
+        title: meeting.title,
+        date: meeting.date,
+        startTime: meeting.startTime,
+        endTime: meeting.endTime,
+      });
+      onSuccess();
+
       // Reset form
       setTitle('');
       setDate(prefilledDate);
       setStartTime(prefilledStartTime);
       setDurationMinutes(initialDuration);
       setEndTime(calculateEndTime(prefilledStartTime, initialDuration));
-      onSuccess();
-      onClose();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to schedule meeting');
     } finally {
@@ -113,6 +136,7 @@ export function ScheduleMeetingModal({
     if (!isSubmitting) {
       setError('');
       setTitle('');
+      setScheduledMeeting(null);
       onClose();
     }
   };
@@ -134,14 +158,71 @@ export function ScheduleMeetingModal({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Calendar className="h-5 w-5" />
-            Schedule Meeting
+            {scheduledMeeting ? 'Meeting Scheduled' : 'Schedule Meeting'}
           </DialogTitle>
           <DialogDescription>
-            Create a new meeting for your team. All members will be able to see it.
+            {scheduledMeeting
+              ? 'Your meeting is now visible to your team. Add it to your calendar.'
+              : 'Create a new meeting for your team. All members will be able to see it.'}
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit}>
+        {scheduledMeeting ? (
+          <div className="space-y-4 py-4">
+            <div className="rounded-md border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800">
+              <div className="flex items-center gap-2 font-medium">
+                <CheckCircle2 className="h-4 w-4" />
+                {scheduledMeeting.title}
+              </div>
+              <p className="mt-1">
+                {scheduledMeeting.date} {scheduledMeeting.startTime} - {scheduledMeeting.endTime}
+              </p>
+            </div>
+
+            <div className="grid gap-2 sm:grid-cols-3">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  const event = createCalendarEventFromMeeting(scheduledMeeting);
+                  window.open(getGoogleCalendarUrl(event), '_blank', 'noopener,noreferrer');
+                }}
+              >
+                <ExternalLink className="h-4 w-4 mr-1" />
+                Google
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  const event = createCalendarEventFromMeeting(scheduledMeeting);
+                  window.open(getOutlookCalendarUrl(event), '_blank', 'noopener,noreferrer');
+                }}
+              >
+                <ExternalLink className="h-4 w-4 mr-1" />
+                Outlook
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  const event = createCalendarEventFromMeeting(scheduledMeeting);
+                  downloadIcsFile(event, `${scheduledMeeting.title.replace(/\s+/g, '-').toLowerCase() || 'meeting'}.ics`);
+                }}
+              >
+                <CalendarPlus className="h-4 w-4 mr-1" />
+                Apple
+              </Button>
+            </div>
+
+            <DialogFooter>
+              <Button type="button" onClick={handleClose}>
+                Done
+              </Button>
+            </DialogFooter>
+          </div>
+        ) : (
+          <form onSubmit={handleSubmit}>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
               <Label htmlFor="title">Meeting Title</Label>
@@ -222,7 +303,8 @@ export function ScheduleMeetingModal({
               {isSubmitting ? 'Scheduling...' : 'Schedule Meeting'}
             </Button>
           </DialogFooter>
-        </form>
+          </form>
+        )}
       </DialogContent>
     </Dialog>
   );

@@ -9,6 +9,7 @@ export interface TaskCardProps {
   description: string | null;
   status: string;
   dueDate: string | null;
+  reminderDate: string | null;
   assigneeName: string | null;
   onClick?: (taskId: string) => void;
   onDragStart?: (taskId: string) => void;
@@ -19,6 +20,7 @@ export function TaskCard({
   title,
   description,
   dueDate,
+  reminderDate,
   assigneeName,
   onClick,
   onDragStart,
@@ -56,6 +58,12 @@ export function TaskCard({
           <span className="inline-flex items-center gap-1">
             <Clock className="h-3 w-3" />
             {format(new Date(dueDate), 'MMM d, yyyy')}
+          </span>
+        )}
+        {reminderDate && (
+          <span className="inline-flex items-center gap-1">
+            <Clock className="h-3 w-3" />
+            Remind {format(new Date(reminderDate), 'MMM d, h:mm a')}
           </span>
         )}
       </div>

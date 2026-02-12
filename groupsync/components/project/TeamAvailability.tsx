@@ -2,7 +2,6 @@
 
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Avatar } from '@/components/ui/avatar';
 import {
   DAYS_OF_WEEK,
   HALF_HOURS,
@@ -15,6 +14,7 @@ import {
 interface TeamAvailabilityProps {
   availabilities: UserAvailability[];
   weekOffset?: number;
+  compact?: boolean;
 }
 
 // Show hours from 6 AM to 11 PM for better UX (in 30-minute increments)
@@ -32,20 +32,13 @@ const USER_COLORS = [
   'bg-red-500/70',
 ];
 
-export function TeamAvailability({ availabilities, weekOffset = 0 }: TeamAvailabilityProps) {
+export function TeamAvailability({ availabilities, weekOffset = 0, compact = false }: TeamAvailabilityProps) {
   // Create grids for each user
   const userGrids = availabilities.map((avail, index) => ({
     ...avail,
     grid: createAvailabilityGrid(avail.slots),
     color: USER_COLORS[index % USER_COLORS.length],
   }));
-
-  console.log('TeamAvailability - Total users:', availabilities.length);
-  console.log('TeamAvailability - User grids:', userGrids.map(u => ({
-    name: u.userName,
-    slotCount: u.slots.length,
-    hasData: u.grid.some(day => day.some(slot => slot))
-  })));
 
   // Calculate how many people are available at each time slot (48 half-hour blocks)
   const overlapCounts: number[][] = Array.from({ length: 7 }, () => Array(48).fill(0));
@@ -59,8 +52,6 @@ export function TeamAvailability({ availabilities, weekOffset = 0 }: TeamAvailab
     }
   }
 
-  console.log('TeamAvailability - Max overlap found:', Math.max(...overlapCounts.flat()));
-
   const maxCount = availabilities.length;
 
   return (
@@ -68,7 +59,7 @@ export function TeamAvailability({ availabilities, weekOffset = 0 }: TeamAvailab
       {/* Legend - Show all team members */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Team Members</CardTitle>
+          <CardTitle className="text-base">{compact ? 'Members' : 'Team Members'}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex flex-wrap gap-3">
@@ -85,8 +76,8 @@ export function TeamAvailability({ availabilities, weekOffset = 0 }: TeamAvailab
       {/* Availability Heatmap */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Team Availability Heatmap</CardTitle>
-          <p className="text-sm text-slate-600">
+          <CardTitle className="text-base">{compact ? 'Availability Heatmap' : 'Team Availability Heatmap'}</CardTitle>
+          <p className={`${compact ? 'text-xs' : 'text-sm'} text-slate-600`}>
             Darker colors indicate more team members are available
           </p>
         </CardHeader>

@@ -3,11 +3,12 @@
 import { useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { differenceInCalendarDays, format } from 'date-fns';
-import { CalendarClock, CheckCircle2, Users } from 'lucide-react';
+import { BookOpen, CalendarClock, CheckCircle2, Users } from 'lucide-react';
 
 import { Avatar, AvatarFallback, AvatarGroup, AvatarGroupCount, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { formatClassNameForDisplay } from '@/lib/class-utils';
 import { DashboardProject } from '@/types';
 
 interface ProjectCardProps {
@@ -69,6 +70,12 @@ export function ProjectCard({ project }: ProjectCardProps) {
           <CalendarClock className="h-3.5 w-3.5" />
           <span>{project.deadline ? format(new Date(project.deadline), 'MMM d, yyyy') : 'No due date set'}</span>
         </div>
+        {project.className ? (
+          <div className="flex items-center gap-2 text-xs text-slate-500">
+            <BookOpen className="h-3.5 w-3.5" />
+            <span>{formatClassNameForDisplay(project.className)}</span>
+          </div>
+        ) : null}
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="flex items-center justify-between">

@@ -36,6 +36,9 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
         },
       },
       teamAgreement: true,
+      class: {
+        select: { id: true, name: true },
+      },
       availability: {
         include: {
           user: {
@@ -62,6 +65,7 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
           name={project.name}
           description={project.description}
           deadline={project.deadline?.toISOString() ?? null}
+          className={project.class?.name ?? null}
           inviteCode={project.inviteCode}
           memberCount={project.members.length}
           shareToken={project.shareToken}
@@ -80,6 +84,7 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
             description: task.description,
             status: task.status as 'todo' | 'in_progress' | 'done',
             dueDate: task.dueDate?.toISOString() ?? null,
+            reminderDate: task.reminderDate?.toISOString() ?? null,
             assigneeName: task.assignee?.name ?? null,
             assignedTo: task.assignedTo,
             createdAt: task.createdAt.toISOString(),

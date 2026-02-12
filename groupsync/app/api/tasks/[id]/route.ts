@@ -41,6 +41,7 @@ export async function PATCH(request: Request, { params }: RouteProps) {
     assignedTo?: string | null;
     status?: string;
     dueDate?: Date | null;
+    reminderDate?: Date | null;
     orderIndex?: number;
   } = {};
 
@@ -64,6 +65,9 @@ export async function PATCH(request: Request, { params }: RouteProps) {
   }
   if (typeof body.dueDate === 'string' || body.dueDate === null) {
     data.dueDate = body.dueDate ? new Date(body.dueDate) : null;
+  }
+  if (typeof body.reminderDate === 'string' || body.reminderDate === null) {
+    data.reminderDate = body.reminderDate ? new Date(body.reminderDate) : null;
   }
 
   const updated = await prisma.task.update({

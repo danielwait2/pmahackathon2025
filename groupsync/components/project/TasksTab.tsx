@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { TaskBoard } from './TaskBoard';
 import { AddTaskModal, type TaskFormData, type ProjectMember } from './AddTaskModal';
-import { TaskDetailModal, type TaskDetail } from './TaskDetailModal';
+import { TaskDetailModal } from './TaskDetailModal';
 
 export interface ProjectTaskItem {
   id: string;
@@ -11,6 +11,7 @@ export interface ProjectTaskItem {
   description: string | null;
   status: 'todo' | 'in_progress' | 'done';
   dueDate: string | null;
+  reminderDate: string | null;
   assigneeName: string | null;
   assignedTo: string | null;
   createdAt: string;
@@ -50,6 +51,7 @@ export function TasksTab({ projectId, tasks, members, onRefresh }: TasksTabProps
         assignedTo: data.assignedTo || null,
         status: data.status,
         dueDate: data.dueDate || null,
+        reminderDate: data.reminderDate || null,
       }),
     });
 
@@ -74,6 +76,20 @@ export function TasksTab({ projectId, tasks, members, onRefresh }: TasksTabProps
 
     onRefresh();
     setSelectedTaskId(null);
+  };
+
+  const handleUpdateTaskDates = async (taskId: string, dueDate: string | null, reminderDate: string | null) => {
+    const response = await fetch(`/api/tasks/${taskId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ dueDate, reminderDate }),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to update task dates');
+    }
+
+    onRefresh();
   };
 
   const handleDeleteTask = async (taskId: string) => {
@@ -103,7 +119,6 @@ export function TasksTab({ projectId, tasks, members, onRefresh }: TasksTabProps
       <AddTaskModal
         open={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
-        projectId={projectId}
         members={members}
         onSubmit={handleCreateTask}
         initialData={{ status: defaultStatus }}
@@ -120,9 +135,11 @@ export function TasksTab({ projectId, tasks, members, onRefresh }: TasksTabProps
             description: selectedTask.description,
             status: selectedTask.status,
             dueDate: selectedTask.dueDate,
+            reminderDate: selectedTask.reminderDate,
             assigneeName: selectedTask.assigneeName,
             createdAt: selectedTask.createdAt,
           }}
+          onUpdateTaskDates={handleUpdateTaskDates}
           onStatusChange={handleUpdateTaskStatus}
           onDelete={handleDeleteTask}
         />

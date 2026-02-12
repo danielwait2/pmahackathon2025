@@ -15,6 +15,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
+import { ClassSelector } from '@/components/project/ClassSelector';
 
 interface CreateProjectWizardProps {
   open: boolean;
@@ -56,6 +57,7 @@ export function CreateProjectWizard({ open, onOpenChange }: CreateProjectWizardP
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [deadline, setDeadline] = useState<Date | undefined>(undefined);
+  const [classId, setClassId] = useState<string | null>(null);
 
   const [responseTime, setResponseTime] = useState('Within 24 hours');
   const [meetingFrequency, setMeetingFrequency] = useState('Weekly');
@@ -78,6 +80,7 @@ export function CreateProjectWizard({ open, onOpenChange }: CreateProjectWizardP
     setName('');
     setDescription('');
     setDeadline(undefined);
+    setClassId(null);
     setResponseTime('Within 24 hours');
     setMeetingFrequency('Weekly');
     setCommunicationChannel('Discord');
@@ -110,6 +113,7 @@ export function CreateProjectWizard({ open, onOpenChange }: CreateProjectWizardP
           name: name.trim(),
           description: description.trim() || null,
           deadline: deadline.toISOString().slice(0, 10),
+          classId,
           responseTimeHours: responseTimeMap[responseTime] ?? 24,
           meetingFrequency,
           communicationChannel: channel,
@@ -183,6 +187,10 @@ export function CreateProjectWizard({ open, onOpenChange }: CreateProjectWizardP
                 maxLength={500}
                 placeholder="What are you building and for which class?"
               />
+            </div>
+            <div className="space-y-2">
+              <Label>Class (optional)</Label>
+              <ClassSelector value={classId} onChange={setClassId} />
             </div>
             <div className="space-y-2">
               <Label>Deadline</Label>

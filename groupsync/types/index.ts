@@ -4,6 +4,8 @@ export interface DashboardProject {
   name: string;
   description: string | null;
   deadline: string | null;
+  classId: string | null;
+  className: string | null;
   created_by: string;
   invite_code: string;
   created_at: string;
@@ -24,8 +26,16 @@ export interface Project {
   name: string;
   description: string | null;
   deadline: string | null;
+  classId: string | null;
+  class: Class | null;
   createdById: string;
   inviteCode: string;
+  createdAt: string;
+}
+
+export interface Class {
+  id: string;
+  name: string;
   createdAt: string;
 }
 
@@ -37,6 +47,7 @@ export interface Task {
   assignedTo: string | null;
   status: 'todo' | 'in_progress' | 'done';
   dueDate: string | null;
+  reminderDate: string | null;
   orderIndex: number;
   createdAt: string;
 }
@@ -46,6 +57,7 @@ export interface DashboardAssignedTask {
   title: string;
   status: 'todo' | 'in_progress' | 'done';
   dueDate: string | null;
+  reminderDate: string | null;
   projectId: string;
   projectName: string;
 }

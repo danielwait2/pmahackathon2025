@@ -29,12 +29,14 @@ model Project {
   name         String
   description  String?
   deadline     DateTime?
+  classId      String?   @map("class_id")
   createdById  String    @map("created_by")
   inviteCode   String    @unique @map("invite_code")
   shareToken   String?   @unique @map("share_token")
   createdAt    DateTime  @default(now()) @map("created_at")
 
   createdBy       User                @relation("ProjectCreator", fields: [createdById], references: [id])
+  class           Class?              @relation(fields: [classId], references: [id], onDelete: SetNull)
   members         ProjectMember[]
   availability    Availability[]
   tasks           Task[]
@@ -85,6 +87,7 @@ model Task {
   assignedTo  String?   @map("assigned_to")
   status      String    @default("todo")
   dueDate     DateTime? @map("due_date")
+  reminderDate DateTime? @map("reminder_date")
   orderIndex  Int       @default(0) @map("order_index")
   createdAt   DateTime  @default(now()) @map("created_at")
 
@@ -123,4 +126,14 @@ model Meeting {
   createdBy   User?    @relation(fields: [createdById], references: [id], onDelete: SetNull)
 
   @@map("meetings")
+}
+
+model Class {
+  id        String    @id @default(uuid())
+  name      String    @unique @map("name")
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  projects  Project[]
+
+  @@map("classes")
 }

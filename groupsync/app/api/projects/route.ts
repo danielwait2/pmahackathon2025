@@ -15,10 +15,24 @@ export async function POST(request: Request) {
   }
 
   const body = await request.json();
-  const { name, description, deadline, responseTimeHours, meetingFrequency, communicationChannel } = body;
+  const { name, description, deadline, classId, responseTimeHours, meetingFrequency, communicationChannel } = body;
 
   if (!name?.trim()) {
     return NextResponse.json({ error: 'Project name is required' }, { status: 400 });
+  }
+
+  let normalizedClassId: string | null = null;
+  if (typeof classId === 'string' && classId.trim()) {
+    const selectedClass = await prisma.class.findUnique({
+      where: { id: classId.trim() },
+      select: { id: true },
+    });
+
+    if (!selectedClass) {
+      return NextResponse.json({ error: 'Selected class does not exist' }, { status: 400 });
+    }
+
+    normalizedClassId = selectedClass.id;
   }
 
   let inviteCode = generateInviteCode();
@@ -32,6 +46,7 @@ export async function POST(request: Request) {
       name: name.trim(),
       description: description?.trim() || null,
       deadline: deadline ? new Date(deadline) : null,
+      classId: normalizedClassId,
       createdById: session.user.id,
       inviteCode,
       members: {
