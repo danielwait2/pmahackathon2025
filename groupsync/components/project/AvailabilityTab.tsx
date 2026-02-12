@@ -156,17 +156,17 @@ export function AvailabilityTab({
               <TeamAvailability availabilities={teamData} weekOffset={weekOffset} compact />
             </div>
             <div className="space-y-4 min-w-0">
+              <UpcomingMeetings
+                projectId={projectId}
+                currentUserId={currentUserId}
+                refreshTrigger={meetingRefreshTrigger}
+              />
               <MeetingFinder
                 projectId={projectId}
                 availabilities={teamData}
                 minDuration={1}
                 onMeetingScheduled={handleMeetingScheduled}
                 weekOffset={weekOffset}
-              />
-              <UpcomingMeetings
-                projectId={projectId}
-                currentUserId={currentUserId}
-                refreshTrigger={meetingRefreshTrigger}
               />
             </div>
           </div>
