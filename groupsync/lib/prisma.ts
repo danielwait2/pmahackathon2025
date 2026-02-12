@@ -15,10 +15,6 @@ if (!databaseUrl) {
   throw new Error('DATABASE_URL must be set in production.');
 }
 
-if (isProduction && databaseUrl.startsWith('file:')) {
-  throw new Error('Invalid DATABASE_URL in production: SQLite file URLs are not allowed.');
-}
-
 export const prisma =
   globalForPrisma.prisma ??
   new PrismaClient({
