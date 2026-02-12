@@ -20,6 +20,7 @@ Before starting feature work, check the `ai/` folder for pending improvements:
 1. **Create meeting calendar event** – Add to Google Calendar / Outlook / Apple Calendar from scheduled meetings  
 2. **Combine Team View + Meeting Finder** – Show team availability and meeting suggestions on one page  
 3. **Onboarding tutorial** – First-time user guide for navigation and core flows  
+4. **Due dates and reminders** – Add due dates and reminder dates to tasks; default reminder is 1 day before due date  
 
 ---
 

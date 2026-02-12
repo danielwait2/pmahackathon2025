@@ -7,12 +7,14 @@
 ## Improvement #1: Create Meeting Calendar Event
 
 ### Setup & Planning
+
 - [ ] Read `IMPROVEMENTS-TODO.md` section for Improvement #1
 - [ ] Review `components/project/UpcomingMeetings.tsx` structure
 - [ ] Review `components/project/ScheduleMeetingModal.tsx` flow
 - [ ] Understand Meeting model (date, startTime, endTime, title)
 
 ### Implementation
+
 - [ ] Create `lib/calendar-utils.ts` with:
   - [ ] `getGoogleCalendarUrl(event)`
   - [ ] `getOutlookCalendarUrl(event)`
@@ -25,6 +27,7 @@
 - [ ] (Optional) Add calendar options to success state in `ScheduleMeetingModal`
 
 ### Verification
+
 - [ ] Google Calendar link opens with correct title, date, time
 - [ ] Outlook link opens with correct event details
 - [ ] .ics file downloads and imports correctly into Apple Calendar
@@ -38,12 +41,14 @@
 ## Improvement #2: Combine Team View + Meeting Finder on One Page
 
 ### Setup & Planning
+
 - [ ] Read `IMPROVEMENTS-TODO.md` section for Improvement #2
 - [ ] Review `AvailabilityTab.tsx` current tab structure
 - [ ] Review `TeamAvailability.tsx` and `MeetingFinder.tsx` layout
 - [ ] Decide: merge tabs or add new combined tab
 
 ### Implementation
+
 - [ ] Modify `AvailabilityTab.tsx` to combine Team View + Meeting Finder
 - [ ] Create side-by-side layout (desktop: grid | suggestions)
 - [ ] Ensure `teamData` and `weekOffset` passed to both components
@@ -53,6 +58,7 @@
 - [ ] Update tab labels (e.g. "My Availability" | "Schedule")
 
 ### Verification
+
 - [ ] Team availability visible alongside meeting finder
 - [ ] Suggested times display correctly
 - [ ] Week navigation updates both sections
@@ -67,11 +73,13 @@
 ## Improvement #3: Add Onboarding Tutorial
 
 ### Setup & Planning
+
 - [ ] Read `IMPROVEMENTS-TODO.md` section for Improvement #3
 - [ ] Identify where to trigger (projects page, first project, or both)
 - [ ] Define 3–4 step content
 
 ### Implementation
+
 - [ ] Create `lib/onboarding.ts`:
   - [ ] `hasSeenOnboarding(): boolean`
   - [ ] `markOnboardingSeen(): void`
@@ -84,6 +92,7 @@
 - [ ] Guard: only show when `!hasSeenOnboarding()`
 
 ### Verification
+
 - [ ] First-time visitor sees tour
 - [ ] Can progress through steps or skip
 - [ ] Dismissing sets localStorage
@@ -96,13 +105,53 @@
 
 ---
 
+## Improvement #4: Add Due Dates and Reminders to Tasks
+
+### Setup & Planning
+
+- [ ] Read `IMPROVEMENTS-TODO.md` section for Improvement #4
+- [ ] Review Task model in `prisma/schema.prisma` (dueDate exists)
+- [ ] Review `AddTaskModal.tsx` and `TaskDetailModal.tsx` form structure
+- [ ] Review task API routes and serialization
+
+### Implementation
+
+- [ ] Add `reminderDate DateTime? @map("reminder_date")` to Task in schema
+- [ ] Run `npx prisma migrate dev` for migration
+- [ ] Update `types/index.ts` – add `reminderDate` to Task interface
+- [ ] Update `AddTaskModal.tsx`:
+  - [ ] Add reminder date field
+  - [ ] When due date is set, default reminder to due date − 1 day
+  - [ ] Allow user to override or clear reminder
+- [ ] Update `TaskDetailModal.tsx` – add reminder field for editing
+- [ ] Update `TaskCard.tsx` – display reminder when present
+- [ ] Update `TaskListView.tsx` – display reminder when present
+- [ ] Update `app/api/tasks/route.ts` – accept and save `reminderDate`
+- [ ] Update `app/api/tasks/[id]/route.ts` – accept and save `reminderDate`
+- [ ] Update `app/project/[id]/page.tsx` – include `reminderDate` in serialization
+- [ ] Update `app/dashboard/page.tsx` – include `reminderDate` in serialization
+
+### Verification
+
+- [ ] Can set due date when creating a task
+- [ ] Can set reminder; defaults to 1 day before due when due date is set
+- [ ] Can edit due date and reminder on existing tasks
+- [ ] Reminder displays on task cards and task detail
+- [ ] Reminder can be cleared without clearing due date
+- [ ] API persists and returns `reminderDate` correctly
+
+### Status: [ ] Not started | [ ] In progress | [ ] Complete
+
+---
+
 ## Overall Progress
 
-| Improvement | Status   | Notes |
-|-------------|----------|-------|
-| #1 Calendar event | ⬜ | |
-| #2 Combined view  | ⬜ | |
-| #3 Onboarding     | ⬜ | |
+| Improvement       | Status | Notes |
+| ----------------- | ------ | ----- |
+| #1 Calendar event | ⬜     |       |
+| #2 Combined view  | ⬜     |       |
+| #3 Onboarding     | ⬜     |       |
+| #4 Due dates & reminders | ⬜ |       |
 
 ---
 

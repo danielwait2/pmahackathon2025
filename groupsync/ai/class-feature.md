@@ -1,0 +1,158 @@
+# GroupSync – Add Classes Feature
+
+> **For AI agents:** This document describes how to add a classes feature. Read this file before starting work. Follow the same workflow as `IMPROVEMENTS-TODO.md` and `IMPROVEMENTS-CHECKLIST.md`.
+
+---
+
+## Summary
+
+| #   | Feature                              | Priority | Effort | Status         |
+| --- | ------------------------------------ | -------- | ------ | -------------- |
+| 1   | Add classes with dropdown + new option | High     | Medium | ⬜ Not started |
+
+---
+
+## Context
+
+Users need to assign classes (e.g. course names, categories) to their projects or tasks. Classes should be a shared, app-wide list so that when any user adds a class, it becomes available to all users in a dropdown. This avoids duplicate entries like "CS 101" vs "cs 101" vs "CS101" by normalizing and deduplicating.
+
+---
+
+## What to build
+
+1. **Database** – A global `Class` model storing all classes any user has added
+2. **Dropdown UI** – When adding/editing a project (or task), show a dropdown of existing classes
+3. **Add new option** – Allow users to add a new class that gets saved to the global list
+4. **Data cleaning** – Normalize all class names: trim whitespace, store lowercase, collapse repeated spaces
+5. **Deduplication** – Before inserting a new class, check if it already exists (case-insensitive)
+
+---
+
+## Technical implementation
+
+### Schema (Prisma)
+
+```prisma
+model Class {
+  id        String    @id @default(uuid())
+  name      String    @unique @map("name")  // stored lowercase, trimmed
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  projects  Project[]
+
+  @@map("classes")
+}
+```
+
+- Add `classId String? @map("class_id")` to `Project` model
+- Add relation: `class Class? @relation(fields: [classId], references: [id], onDelete: SetNull)`
+- Run migration
+
+(If classes should also apply to tasks, add `classId` to `Task` similarly.)
+
+### Data cleaning utility
+
+Create `lib/class-utils.ts`:
+
+```typescript
+/**
+ * Normalizes a class name for storage:
+ * - Trim leading/trailing whitespace
+ * - Convert to lowercase
+ * - Collapse multiple spaces to single space
+ * - Optional: remove or restrict special characters
+ */
+export function normalizeClassName(input: string): string {
+  return input
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, ' ');
+}
+```
+
+### API endpoints
+
+**GET /api/classes**
+
+- Returns all classes, ordered by name
+- Used to populate dropdown
+
+**POST /api/classes**
+
+- Body: `{ name: string }`
+- Normalize name with `normalizeClassName`
+- Reject empty strings after normalization
+- Check if class with same normalized name exists; if so, return existing (no duplicate)
+- Create new class and return it
+
+### UI: Class selector component
+
+Create `components/ui/ClassSelector.tsx` (or `components/project/ClassSelector.tsx`):
+
+- **Combobox pattern:** Input + dropdown list
+- **Options:** Existing classes from `GET /api/classes`
+- **"Add new" / custom value:** When user types something not in the list, show "Add '[value]'" option; on select, call `POST /api/classes` with that name
+- **Display:** Show class names with proper casing for display (capitalize first letter, or store a `displayName` if needed). For simplicity, display the stored lowercase value with first-letter caps: `name.charAt(0).toUpperCase() + name.slice(1)`
+- **Clearing:** Allow "None" or empty to unset the class
+
+### Where to integrate
+
+- **CreateProjectWizard** – Add optional "Class" field (dropdown + add new) in step 1
+- **Project settings / edit** – If projects can be edited, add class selector there
+- **Project model** – Include `classId` and `class` in project queries and serialization
+
+---
+
+## Files to create
+
+| File                       | Purpose                                               |
+| -------------------------- | ----------------------------------------------------- |
+| `lib/class-utils.ts`       | `normalizeClassName()` for data cleaning              |
+| `app/api/classes/route.ts` | GET (list) and POST (create) classes                  |
+| `components/project/ClassSelector.tsx` | Dropdown + add-new combobox for class selection |
+
+---
+
+## Files to modify
+
+| File                           | Changes                                                                 |
+| ------------------------------ | ----------------------------------------------------------------------- |
+| `prisma/schema.prisma`         | Add `Class` model; add `classId` and relation to `Project`              |
+| `types/index.ts`               | Add `Class` interface; add `classId` / `class` to `Project` if needed   |
+| `components/dashboard/CreateProjectWizard.tsx` | Add ClassSelector; include `classId` in create project payload |
+| `app/api/projects/route.ts`    | Accept `classId` when creating project; validate it exists              |
+| Project page / API             | Include `class` in project fetch and serialization where classes are shown |
+
+---
+
+## Data cleaning rules
+
+| Rule                 | Example input       | Stored value    |
+| -------------------- | ------------------- | --------------- |
+| Trim whitespace      | `"  CS 101  "`      | `"cs 101"`      |
+| Lowercase            | `"CS 101"`          | `"cs 101"`      |
+| Collapse spaces      | `"CS    101"`       | `"cs 101"`      |
+| Empty after clean    | `"   "`             | Reject          |
+| Dedupe on insert     | Add `"CS 101"` when `"cs 101"` exists | Return existing, no new row |
+
+---
+
+## Verification
+
+- [ ] Classes are stored in database with normalized names (lowercase, trimmed)
+- [ ] Dropdown shows all existing classes
+- [ ] User can select an existing class from dropdown
+- [ ] User can add a new class; it appears in dropdown for future use
+- [ ] Adding a class that normalizes to an existing one does not create a duplicate
+- [ ] Empty or whitespace-only input is rejected
+- [ ] Class displays correctly in UI (e.g. with proper casing for readability)
+- [ ] Project creation/update persists `classId` correctly
+- [ ] Projects can be filtered or displayed by class (if applicable)
+
+---
+
+## Related Files
+
+- `groupsync/ai/IMPROVEMENTS-TODO.md` – Other improvements
+- `groupsync/ai/IMPROVEMENTS-CHECKLIST.md` – Checklist format
+- `groupsync/AGENTS.md` – Agent entry point
