@@ -54,6 +54,7 @@ export function CreateProjectWizard({ open, onOpenChange }: CreateProjectWizardP
   const [loading, setLoading] = useState(false);
   const [createdProject, setCreatedProject] = useState<CreatedProject | null>(null);
 
+  const [isAssignment, setIsAssignment] = useState(false);
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [deadline, setDeadline] = useState<Date | undefined>(undefined);
@@ -77,6 +78,7 @@ export function CreateProjectWizard({ open, onOpenChange }: CreateProjectWizardP
     setStep(1);
     setLoading(false);
     setCreatedProject(null);
+    setIsAssignment(false);
     setName('');
     setDescription('');
     setDeadline(undefined);
@@ -114,6 +116,7 @@ export function CreateProjectWizard({ open, onOpenChange }: CreateProjectWizardP
           description: description.trim() || null,
           deadline: deadline.toISOString().slice(0, 10),
           classId,
+          isAssignment,
           responseTimeHours: responseTimeMap[responseTime] ?? 24,
           meetingFrequency,
           communicationChannel: channel,
@@ -129,7 +132,7 @@ export function CreateProjectWizard({ open, onOpenChange }: CreateProjectWizardP
       const project = await res.json();
       setCreatedProject(project);
       setStep(3);
-      toast.success('Project created!');
+      toast.success(isAssignment ? 'Assignment created!' : 'Project created!');
     } catch {
       toast.error('Unable to create project right now.');
     } finally {
@@ -161,7 +164,7 @@ export function CreateProjectWizard({ open, onOpenChange }: CreateProjectWizardP
     <Dialog open={open} onOpenChange={closeWizard}>
       <DialogContent className="sm:max-w-2xl">
         <DialogHeader>
-          <DialogTitle>Create Project</DialogTitle>
+          <DialogTitle>{isAssignment ? 'Create Assignment' : 'Create Project'}</DialogTitle>
           <DialogDescription>Step {step} of 3</DialogDescription>
         </DialogHeader>
         <StepIndicator step={step} />
@@ -169,7 +172,35 @@ export function CreateProjectWizard({ open, onOpenChange }: CreateProjectWizardP
         {step === 1 && (
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="project-name">Project Name</Label>
+              <Label>Type</Label>
+              <div className="flex gap-4">
+                <label className="flex cursor-pointer items-center gap-2">
+                  <input
+                    type="radio"
+                    name="type"
+                    checked={!isAssignment}
+                    onChange={() => setIsAssignment(false)}
+                    className="h-4 w-4"
+                  />
+                  <span>Project</span>
+                </label>
+                <label className="flex cursor-pointer items-center gap-2">
+                  <input
+                    type="radio"
+                    name="type"
+                    checked={isAssignment}
+                    onChange={() => setIsAssignment(true)}
+                    className="h-4 w-4"
+                  />
+                  <span>Assignment</span>
+                </label>
+              </div>
+              <p className="text-xs text-slate-500">
+                Assignments are lightweight—invite members and find meeting times, no task tracking.
+              </p>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="project-name">{isAssignment ? 'Assignment' : 'Project'} Name</Label>
               <Input
                 id="project-name"
                 value={name}
@@ -278,7 +309,7 @@ export function CreateProjectWizard({ open, onOpenChange }: CreateProjectWizardP
                 Back
               </Button>
               <Button onClick={handleCreateProject} disabled={loading}>
-                {loading ? 'Creating...' : 'Create Project'}
+                {loading ? 'Creating...' : isAssignment ? 'Create Assignment' : 'Create Project'}
               </Button>
             </div>
           </div>
@@ -310,7 +341,7 @@ export function CreateProjectWizard({ open, onOpenChange }: CreateProjectWizardP
               </Button>
               <Button type="button" onClick={done}>
                 <CheckCircle2 className="mr-2 h-4 w-4" />
-                Done - Go to Project
+                Done - Go to {isAssignment ? 'Assignment' : 'Project'}
               </Button>
             </div>
           </div>

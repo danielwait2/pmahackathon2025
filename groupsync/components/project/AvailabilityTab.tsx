@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -29,13 +30,14 @@ export function AvailabilityTab({
   initialSlots,
   teamAvailabilities,
 }: AvailabilityTabProps) {
+  const router = useRouter();
   const [mySlots, setMySlots] = useState<TimeSlot[]>(() => jsonToSlots(initialSlots));
   const [teamData, setTeamData] = useState<UserAvailability[]>(teamAvailabilities);
   const [isSaving, setIsSaving] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
   const [meetingRefreshTrigger, setMeetingRefreshTrigger] = useState(0);
   const [weekOffset, setWeekOffset] = useState(0);
-  const [isLoadingWeek, setIsLoadingWeek] = useState(false);
+  const [isLoadingWeek, setIsLoadingWeek] = useState(true); // Start true to fetch on mount
 
   const weekLabel = useMemo(() => getWeekRangeLabel(weekOffset), [weekOffset]);
   const weekStart = useMemo(() => getWeekStartKey(weekOffset), [weekOffset]);
@@ -44,28 +46,23 @@ export function AvailabilityTab({
     setTeamData(teamAvailabilities);
   }, [teamAvailabilities]);
 
+  // Always fetch from API - uses client's weekStart for correct week-key extraction (fixes timezone mismatch)
   useEffect(() => {
-    if (weekOffset === 0) {
-      setMySlots(jsonToSlots(initialSlots));
-      setHasChanges(false);
-      return;
-    }
-
     const fetchWeekAvailability = async () => {
       setIsLoadingWeek(true);
       try {
         const response = await fetch(`/api/availability/${projectId}?weekStart=${weekStart}`);
         if (!response.ok) return;
         const data = await response.json();
-        const formatted: UserAvailability[] = (Array.isArray(data) ? data : []).map((entry) => ({
-          userId: entry.userId,
-          userName: entry.userName,
+        const formatted: UserAvailability[] = (Array.isArray(data) ? data : []).map((entry: { userId?: string; userName?: string; slots?: unknown }) => ({
+          userId: String(entry.userId ?? ''),
+          userName: entry.userName ?? 'Guest',
           slots: Array.isArray(entry.slots) ? entry.slots : [],
         }));
 
         setTeamData(formatted);
         const mine =
-          formatted.find((item) => currentUserId && item.userId === currentUserId)?.slots ?? [];
+          formatted.find((item) => currentUserId && String(item.userId) === String(currentUserId))?.slots ?? [];
         setMySlots(mine);
         setHasChanges(false);
       } finally {
@@ -73,8 +70,8 @@ export function AvailabilityTab({
       }
     };
 
-    fetchWeekAvailability();
-  }, [weekOffset, weekStart, projectId, currentUserId, initialSlots]);
+    void fetchWeekAvailability();
+  }, [weekOffset, weekStart, projectId, currentUserId]);
 
   const handleSlotsChange = (newSlots: TimeSlot[]) => {
     setMySlots(newSlots);
@@ -84,7 +81,7 @@ export function AvailabilityTab({
   const handleSave = async () => {
     setIsSaving(true);
     try {
-      await fetch('/api/availability', {
+      const res = await fetch('/api/availability', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -93,8 +90,11 @@ export function AvailabilityTab({
           weekStart,
         }),
       });
-      setHasChanges(false);
-      setMeetingRefreshTrigger((prev) => prev + 1);
+      if (res.ok) {
+        setHasChanges(false);
+        setMeetingRefreshTrigger((prev) => prev + 1);
+        router.refresh(); // Refetch server data so team heatmap updates
+      }
     } catch (error) {
       console.error('Failed to save availability:', error);
     } finally {

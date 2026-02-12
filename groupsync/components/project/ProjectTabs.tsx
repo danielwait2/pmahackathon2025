@@ -24,6 +24,7 @@ interface ProjectTabsProps {
   currentMemberId: string;
   actualUserId: string | null;
   isOwner: boolean;
+  isAssignment?: boolean;
   tasks: ProjectTaskItem[];
   members: TeamMemberItem[];
   teamAgreement: TeamAgreementData | null;
@@ -37,6 +38,7 @@ export function ProjectTabs({
   currentMemberId,
   actualUserId,
   isOwner,
+  isAssignment = false,
   tasks,
   members,
   teamAgreement,
@@ -44,19 +46,21 @@ export function ProjectTabs({
   currentUserAvailability,
 }: ProjectTabsProps) {
   const router = useRouter();
+  const defaultTab = isAssignment ? 'availability' : 'tasks';
 
   const handleRefresh = () => {
     router.refresh();
   };
 
   return (
-    <Tabs defaultValue="tasks" className="space-y-4">
+    <Tabs defaultValue={defaultTab} className="space-y-4">
       <TabsList>
-        <TabsTrigger value="tasks">Tasks</TabsTrigger>
+        {!isAssignment && <TabsTrigger value="tasks">Tasks</TabsTrigger>}
         <TabsTrigger value="availability">Availability</TabsTrigger>
         <TabsTrigger value="team">Team</TabsTrigger>
       </TabsList>
 
+      {!isAssignment && (
       <TabsContent value="tasks">
         <TasksTab
           projectId={projectId}
@@ -67,6 +71,7 @@ export function ProjectTabs({
           onRefresh={handleRefresh}
         />
       </TabsContent>
+      )}
 
       <TabsContent value="availability">
         <AvailabilityTab

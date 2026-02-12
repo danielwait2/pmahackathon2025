@@ -6,6 +6,7 @@ export interface DashboardProject {
   deadline: string | null;
   classId: string | null;
   className: string | null;
+  isAssignment: boolean;
   created_by: string;
   invite_code: string;
   created_at: string;
@@ -28,6 +29,7 @@ export interface Project {
   deadline: string | null;
   classId: string | null;
   class: Class | null;
+  isAssignment: boolean;
   createdById: string;
   inviteCode: string;
   createdAt: string;

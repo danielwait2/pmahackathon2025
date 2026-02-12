@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
@@ -26,6 +26,11 @@ const DISPLAY_HALF_HOURS = HALF_HOURS.filter(h => h >= 6 && h < 23);
 export function AvailabilityGrid({ slots, onChange, readonly = false, weekOffset = 0 }: AvailabilityGridProps) {
   const [grid, setGrid] = useState<boolean[][]>(() => createAvailabilityGrid(slots));
   const [isDragging, setIsDragging] = useState(false);
+
+  // Sync grid when slots prop changes (e.g. initial load, week change, data refresh)
+  useEffect(() => {
+    setGrid(createAvailabilityGrid(slots));
+  }, [slots]);
   const [dragMode, setDragMode] = useState<'select' | 'deselect'>('select');
   const [hoveredSlot, setHoveredSlot] = useState<{ day: number; hour: number } | null>(null);
   const [dragStartSlot, setDragStartSlot] = useState<{ day: number; hour: number } | null>(null);

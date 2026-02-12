@@ -6,9 +6,64 @@
 
 ## Summary
 
-| #   | Feature                                 | Priority | Effort | Status   |
-| --- | --------------------------------------- | -------- | ------ | -------- |
-| 1   | Add classes with dropdown + new option  | High     | Medium | Complete |
+| #   | Feature                                | Priority | Effort | Status   |
+| --- | -------------------------------------- | -------- | ------ | -------- |
+| 1   | Add classes with dropdown + new option | High     | Medium | Complete |
+
+---
+
+## Implementation Steps (check off as completed)
+
+### Step 1: Schema
+
+- [x] Add `Class` model to `prisma/schema.prisma`
+- [x] Add `classId` and `class` relation to `Project` model
+- [x] Run migration / db push
+
+### Step 2: Data cleaning utility
+
+- [x] Create `lib/class-utils.ts`
+- [x] Implement `normalizeClassName()` (trim, lowercase, collapse spaces)
+- [x] Implement `formatClassNameForDisplay()` (title case for UI)
+
+### Step 3: API
+
+- [x] Create `app/api/classes/route.ts`
+- [x] GET – return all classes ordered by name
+- [x] POST – accept `{ name }`, normalize, dedupe, create or return existing
+
+### Step 4: ClassSelector component
+
+- [x] Create `components/project/ClassSelector.tsx`
+- [x] Dropdown with existing classes + "None"
+- [x] Input + "Add" button to create new class
+- [x] Display names with `formatClassNameForDisplay`
+
+### Step 5: CreateProjectWizard integration
+
+- [x] Add `ClassSelector` to step 1
+- [x] Add `classId` state and pass to API on create
+- [x] Reset `classId` in wizard reset
+
+### Step 6: Projects API
+
+- [x] Update `app/api/projects/route.ts` to accept `classId`
+- [x] Validate class exists when `classId` provided
+- [x] Save `classId` to project on create
+
+### Step 7: Types
+
+- [x] Add `Class` interface to `types/index.ts`
+- [x] Add `classId` and `class` to Project interfaces
+- [x] Add `classId` and `className` to `DashboardProject`
+
+### Step 8: Project page & display
+
+- [x] Include `class` in project page Prisma query
+- [x] Pass `className` to `ProjectHeader`
+- [x] Display class in `ProjectHeader` with BookOpen icon
+- [x] Include class in dashboard project fetch
+- [x] Display class in `ProjectCard` when present
 
 ---
 
@@ -63,10 +118,7 @@ Create `lib/class-utils.ts`:
  * - Optional: remove or restrict special characters
  */
 export function normalizeClassName(input: string): string {
-  return input
-    .trim()
-    .toLowerCase()
-    .replace(/\s+/g, ' ');
+  return input.trim().toLowerCase().replace(/\s+/g, " ");
 }
 ```
 
@@ -105,35 +157,38 @@ Create `components/ui/ClassSelector.tsx` (or `components/project/ClassSelector.t
 
 ## Files to create
 
-| File                                | Purpose                                                |
-| ----------------------------------- | ------------------------------------------------------ |
-| `lib/class-utils.ts`                | `normalizeClassName()` for data cleaning               |
-| `app/api/classes/route.ts`          | GET (list) and POST (create) classes                   |
-| `components/project/ClassSelector.tsx` | Dropdown + add-new combobox for class selection     |
+| File                                   | Purpose                                         | Status |
+| -------------------------------------- | ----------------------------------------------- | ------ |
+| `lib/class-utils.ts`                   | `normalizeClassName()` for data cleaning        | [x]    |
+| `app/api/classes/route.ts`             | GET (list) and POST (create) classes            | [x]    |
+| `components/project/ClassSelector.tsx` | Dropdown + add-new combobox for class selection | [x]    |
 
 ---
 
 ## Files to modify
 
-| File                                       | Changes                                                               |
-| ------------------------------------------ | --------------------------------------------------------------------- |
-| `prisma/schema.prisma`                     | Add `Class` model; add `classId` and relation to `Project`           |
-| `types/index.ts`                           | Add `Class` interface; add `classId` / `class` to `Project` if needed |
-| `components/dashboard/CreateProjectWizard.tsx` | Add ClassSelector; include `classId` in create project payload |
-| `app/api/projects/route.ts`                | Accept `classId` when creating project; validate it exists            |
-| Project page / API                         | Include `class` in project fetch and serialization where classes are shown |
+| File                                           | Changes                                                               | Status |
+| ---------------------------------------------- | --------------------------------------------------------------------- | ------ |
+| `prisma/schema.prisma`                         | Add `Class` model; add `classId` and relation to `Project`            | [x]    |
+| `types/index.ts`                               | Add `Class` interface; add `classId` / `class` to `Project` if needed | [x]    |
+| `components/dashboard/CreateProjectWizard.tsx` | Add ClassSelector; include `classId` in create project payload        | [x]    |
+| `app/api/projects/route.ts`                    | Accept `classId` when creating project; validate it exists            | [x]    |
+| `app/project/[id]/page.tsx`                    | Include `class` in project fetch; pass to ProjectHeader               | [x]    |
+| `components/project/ProjectHeader.tsx`         | Add className prop; display with BookOpen icon                        | [x]    |
+| `app/dashboard/page.tsx`                       | Include class in project fetch; pass classId, className               | [x]    |
+| `components/dashboard/ProjectCard.tsx`         | Display className when present                                        | [x]    |
 
 ---
 
 ## Data cleaning rules
 
-| Rule                 | Example input       | Stored value    |
-| -------------------- | ------------------- | --------------- |
-| Trim whitespace      | `"  CS 101  "`      | `"cs 101"`      |
-| Lowercase            | `"CS 101"`          | `"cs 101"`      |
-| Collapse spaces      | `"CS    101"`       | `"cs 101"`      |
-| Empty after clean    | `"   "`             | Reject          |
-| Dedupe on insert     | Add `"CS 101"` when `"cs 101"` exists | Return existing, no new row |
+| Rule              | Example input                         | Stored value                |
+| ----------------- | ------------------------------------- | --------------------------- |
+| Trim whitespace   | `"  CS 101  "`                        | `"cs 101"`                  |
+| Lowercase         | `"CS 101"`                            | `"cs 101"`                  |
+| Collapse spaces   | `"CS    101"`                         | `"cs 101"`                  |
+| Empty after clean | `"   "`                               | Reject                      |
+| Dedupe on insert  | Add `"CS 101"` when `"cs 101"` exists | Return existing, no new row |
 
 ---
 
