@@ -8,6 +8,7 @@ import {
   createAvailabilityGrid,
   formatHour,
   getDayHeaderWithDate,
+  type TimeSlot,
   type UserAvailability,
 } from './availability-utils';
 
@@ -15,6 +16,7 @@ interface TeamAvailabilityProps {
   availabilities: UserAvailability[];
   weekOffset?: number;
   compact?: boolean;
+  onSlotClick?: (slot: TimeSlot) => void;
 }
 
 // Show hours from 6 AM to 11 PM for better UX (in 30-minute increments)
@@ -32,7 +34,12 @@ const USER_COLORS = [
   'bg-red-500/70',
 ];
 
-export function TeamAvailability({ availabilities, weekOffset = 0, compact = false }: TeamAvailabilityProps) {
+export function TeamAvailability({
+  availabilities,
+  weekOffset = 0,
+  compact = false,
+  onSlotClick,
+}: TeamAvailabilityProps) {
   // Create grids for each user
   const userGrids = availabilities.map((avail, index) => ({
     ...avail,
@@ -110,6 +117,7 @@ export function TeamAvailability({ availabilities, weekOffset = 0, compact = fal
                       {/* Day Cells */}
                       {DAYS_OF_WEEK.map((_, day) => {
                         const count = overlapCounts[day]?.[halfHourIndex] || 0;
+                        const isClickable = count > 0 && Boolean(onSlotClick);
 
                         // Generate color based on how many people are available
                         const bgColor = count === 0
@@ -123,8 +131,9 @@ export function TeamAvailability({ availabilities, weekOffset = 0, compact = fal
                         return (
                           <div
                             key={`${day}-${halfHourIndex}`}
-                            className={`h-4 flex items-center justify-center text-[10px] transition-colors ${bgColor} ${isFullHour ? 'border-t-2 border-t-slate-300' : ''}`}
-                            title={`${count} of ${maxCount} available`}
+                            className={`h-4 flex items-center justify-center text-[10px] transition-colors ${bgColor} ${isFullHour ? 'border-t-2 border-t-slate-300' : ''} ${isClickable ? 'cursor-pointer' : ''}`}
+                            title={isClickable ? `${count} of ${maxCount} available. Click to schedule a meeting.` : `${count} of ${maxCount} available`}
+                            onClick={isClickable ? () => onSlotClick?.({ day, startHour: halfHour, endHour: halfHour + 0.5 }) : undefined}
                           >
                             {count > 0 && (
                               <span className={count >= maxCount / 2 ? 'text-white font-bold' : 'text-slate-700 font-semibold'}>

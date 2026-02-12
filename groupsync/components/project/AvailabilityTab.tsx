@@ -9,10 +9,12 @@ import { AvailabilityGrid } from './AvailabilityGrid';
 import { TeamAvailability } from './TeamAvailability';
 import { MeetingFinder } from './MeetingFinder';
 import { UpcomingMeetings } from './UpcomingMeetings';
+import { ScheduleMeetingModal } from './ScheduleMeetingModal';
 import {
   jsonToSlots,
   getWeekRangeLabel,
   getWeekStartKey,
+  getWeekDateWithOffset,
   type TimeSlot,
   type UserAvailability,
 } from './availability-utils';
@@ -38,6 +40,8 @@ export function AvailabilityTab({
   const [meetingRefreshTrigger, setMeetingRefreshTrigger] = useState(0);
   const [weekOffset, setWeekOffset] = useState(0);
   const [isLoadingWeek, setIsLoadingWeek] = useState(true); // Start true to fetch on mount
+  const [isQuickScheduleOpen, setIsQuickScheduleOpen] = useState(false);
+  const [quickScheduleSlot, setQuickScheduleSlot] = useState<TimeSlot | null>(null);
 
   const weekLabel = useMemo(() => getWeekRangeLabel(weekOffset), [weekOffset]);
   const weekStart = useMemo(() => getWeekStartKey(weekOffset), [weekOffset]);
@@ -106,6 +110,25 @@ export function AvailabilityTab({
     setMeetingRefreshTrigger((prev) => prev + 1);
   };
 
+  const handleHeatmapSlotClick = (slot: TimeSlot) => {
+    setQuickScheduleSlot(slot);
+    setIsQuickScheduleOpen(true);
+  };
+
+  const getSlotDateString = (dayIndex: number): string => {
+    // dayIndex is 0=Sunday, 1=Monday, etc. from DAYS_OF_WEEK
+    // Convert to week day index (0=Monday)
+    const weekDayIndex = dayIndex === 0 ? 6 : dayIndex - 1;
+    const date = getWeekDateWithOffset(weekDayIndex, weekOffset);
+    return date.toISOString().split('T')[0];
+  };
+
+  const getSlotTimeString = (hour: number): string => {
+    const wholeHour = Math.floor(hour);
+    const minutes = (hour % 1) * 60;
+    return `${String(wholeHour).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex flex-col gap-3 rounded-lg border border-slate-200 bg-white p-4 sm:flex-row sm:items-center sm:justify-between">
@@ -153,7 +176,12 @@ export function AvailabilityTab({
         <TabsContent value="schedule" className="space-y-4">
           <div className="grid gap-4 xl:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)]">
             <div className="min-w-0">
-              <TeamAvailability availabilities={teamData} weekOffset={weekOffset} compact />
+              <TeamAvailability
+                availabilities={teamData}
+                weekOffset={weekOffset}
+                compact
+                onSlotClick={handleHeatmapSlotClick}
+              />
             </div>
             <div className="space-y-4 min-w-0">
               <UpcomingMeetings
@@ -172,6 +200,19 @@ export function AvailabilityTab({
           </div>
         </TabsContent>
       </Tabs>
+
+      {quickScheduleSlot && (
+        <ScheduleMeetingModal
+          isOpen={isQuickScheduleOpen}
+          onClose={() => setIsQuickScheduleOpen(false)}
+          onSuccess={handleMeetingScheduled}
+          projectId={projectId}
+          prefilledDate={getSlotDateString(quickScheduleSlot.day)}
+          prefilledStartTime={getSlotTimeString(quickScheduleSlot.startHour)}
+          prefilledEndTime={getSlotTimeString(quickScheduleSlot.endHour)}
+          prefilledDurationMinutes={Math.round((quickScheduleSlot.endHour - quickScheduleSlot.startHour) * 60)}
+        />
+      )}
     </div>
   );
 }
