@@ -1,11 +1,15 @@
 'use client';
 
-import { useState, useMemo } from 'react';
-import { Calendar, Clock, Users, Plus } from 'lucide-react';
+import { useState, useMemo, useEffect } from 'react';
+import { Calendar, Clock, Users, Plus, Check } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Popover, PopoverTrigger, PopoverContent, PopoverHeader, PopoverTitle } from '@/components/ui/popover';
+import { Separator } from '@/components/ui/separator';
+import { cn } from '@/lib/utils';
 import { ScheduleMeetingModal } from './ScheduleMeetingModal';
 import {
   findCommonAvailability,
@@ -36,11 +40,58 @@ export function MeetingFinder({
   const [selectedDuration, setSelectedDuration] = useState(minDuration);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedSlot, setSelectedSlot] = useState<TimeSlot | null>(null);
+  const [selectedMemberIds, setSelectedMemberIds] = useState<string[]>([]);
+  const [isPopoverOpen, setIsPopoverOpen] = useState(false);
+
+  // Initialize with all members selected
+  useEffect(() => {
+    if (selectedMemberIds.length === 0 && availabilities.length > 0) {
+      setSelectedMemberIds(availabilities.map((a) => a.userId));
+    }
+  }, [availabilities, selectedMemberIds.length]);
+
+  // Helper function for initials
+  const initials = (name: string) => {
+    return name
+      .split(' ')
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((part) => part[0]?.toUpperCase() ?? '')
+      .join('');
+  };
+
+  // Toggle member selection
+  const toggleMemberSelection = (userId: string) => {
+    setSelectedMemberIds((prev) => {
+      if (prev.includes(userId)) {
+        if (prev.length === 1) return prev;
+        return prev.filter((id) => id !== userId);
+      }
+      return [...prev, userId];
+    });
+  };
+
+  // Select/deselect all handlers
+  const selectAllMembers = () => {
+    setSelectedMemberIds(availabilities.map((a) => a.userId));
+  };
+
+  const clearAllMembers = () => {
+    if (availabilities.length > 0) {
+      setSelectedMemberIds([availabilities[0].userId]);
+    }
+  };
 
   // Find all common availability slots
   const commonSlots = useMemo(() => {
-    return findCommonAvailability(availabilities);
-  }, [availabilities]);
+    const selectedAvailabilities = availabilities.filter((a) =>
+      selectedMemberIds.includes(a.userId)
+    );
+
+    if (selectedAvailabilities.length === 0) return [];
+
+    return findCommonAvailability(selectedAvailabilities);
+  }, [availabilities, selectedMemberIds]);
 
   // Filter by minimum duration
   const suggestedTimes = useMemo(() => {
@@ -112,13 +163,89 @@ export function MeetingFinder({
             <div>
               <CardTitle className="text-base">Meeting Time Finder</CardTitle>
               <p className="mt-1 text-sm text-slate-600">
-                Finding times when all {totalParticipants} team member{totalParticipants !== 1 ? 's' : ''} are available
+                {selectedMemberIds.length === totalParticipants
+                  ? `Finding times when all ${totalParticipants} team member${totalParticipants !== 1 ? 's' : ''} are available`
+                  : `Finding times for ${selectedMemberIds.length} of ${totalParticipants} selected members`}
               </p>
             </div>
-            <Badge variant="outline" className="flex items-center gap-1">
-              <Users className="h-3 w-3" />
-              {totalParticipants}
-            </Badge>
+            <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
+              <PopoverTrigger asChild>
+                <Button variant="outline" size="sm" className="gap-2">
+                  <Users className="h-4 w-4" />
+                  {selectedMemberIds.length === totalParticipants
+                    ? `All ${totalParticipants}`
+                    : `${selectedMemberIds.length}/${totalParticipants}`}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent align="end" className="w-80">
+                <PopoverHeader>
+                  <PopoverTitle>Select Participants</PopoverTitle>
+                </PopoverHeader>
+                <Separator className="my-3" />
+
+                {/* Quick Actions */}
+                <div className="flex gap-2 mb-3">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={selectAllMembers}
+                    disabled={selectedMemberIds.length === totalParticipants}
+                    className="flex-1 h-8 text-xs"
+                  >
+                    Select All
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={clearAllMembers}
+                    disabled={selectedMemberIds.length === 1}
+                    className="flex-1 h-8 text-xs"
+                  >
+                    Clear All
+                  </Button>
+                </div>
+
+                <Separator className="my-3" />
+
+                {/* Member List */}
+                <div className="space-y-1 max-h-[300px] overflow-y-auto">
+                  {availabilities.map((availability) => {
+                    const isSelected = selectedMemberIds.includes(availability.userId);
+                    return (
+                      <button
+                        key={availability.userId}
+                        onClick={() => toggleMemberSelection(availability.userId)}
+                        className={cn(
+                          'w-full flex items-center gap-3 p-2 rounded-md transition-colors text-left',
+                          isSelected
+                            ? 'bg-blue-50 hover:bg-blue-100 border border-blue-200'
+                            : 'hover:bg-slate-100 border border-transparent'
+                        )}
+                      >
+                        <Avatar>
+                          <AvatarFallback className="text-xs">
+                            {initials(availability.userName)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <span className="flex-1 text-sm font-medium text-slate-900">
+                          {availability.userName}
+                        </span>
+                        {isSelected && <Check className="h-4 w-4 text-blue-600" />}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {selectedMemberIds.length < totalParticipants && (
+                  <>
+                    <Separator className="my-3" />
+                    <p className="text-xs text-slate-500 text-center">
+                      At least 1 member must be selected
+                    </p>
+                  </>
+                )}
+              </PopoverContent>
+            </Popover>
           </div>
         </CardHeader>
         <CardContent>
@@ -168,7 +295,7 @@ export function MeetingFinder({
                       <Calendar className="h-4 w-4" />
                       {DAYS_OF_WEEK[day]}
                     </h3>
-                    <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                    <div className="space-y-2">
                       {slots.map((slot, index) => {
                         const duration = slot.endHour - slot.startHour;
                         return (
@@ -188,7 +315,9 @@ export function MeetingFinder({
                               </div>
                               <div className="flex flex-col gap-2 items-end">
                                 <Badge variant="outline" className="text-xs">
-                                  All available
+                                  {selectedMemberIds.length === totalParticipants
+                                    ? 'All available'
+                                    : `${selectedMemberIds.length} available`}
                                 </Badge>
                                 <Button
                                   size="sm"

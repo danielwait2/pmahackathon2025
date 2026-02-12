@@ -142,130 +142,95 @@ export function UpcomingMeetings({ projectId, currentUserId, refreshTrigger = 0 
                   key={meeting.id}
                   className="p-4 rounded-lg border border-slate-200 bg-slate-50 hover:bg-slate-100 transition-colors"
                 >
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex-1 min-w-0">
-                      <h3 className="text-sm font-semibold text-slate-900 mb-2">
+                  <div className="flex flex-col gap-3">
+                    <div className="flex items-start justify-between gap-2">
+                      <h3 className="text-sm font-semibold text-slate-900 break-words flex-1">
                         {meeting.title}
                       </h3>
-
-                      <div className="flex flex-col gap-1.5 text-xs text-slate-600">
-                        <div className="flex items-center gap-1.5">
-                          <Calendar className="h-3.5 w-3.5" />
-                          <span>{formatDate(meeting.date)}</span>
-                        </div>
-
-                        <div className="flex items-center gap-1.5">
-                          <Clock className="h-3.5 w-3.5" />
-                          <span>
-                            {formatTime(meeting.startTime)} - {formatTime(meeting.endTime)}
-                          </span>
-                          {formatDuration(meeting.startTime, meeting.endTime) && (
-                            <Badge variant="outline" className="text-[10px]">
-                              {formatDuration(meeting.startTime, meeting.endTime)}
-                            </Badge>
-                          )}
-                        </div>
-
-                        {meeting.createdBy && (
-                          <div className="flex items-center gap-1.5">
-                            <User className="h-3.5 w-3.5" />
-                            <span>Created by {meeting.createdBy.name}</span>
-                          </div>
+                      <div className="flex items-center gap-1 flex-shrink-0">
+                        {isCreator && (
+                          <Badge variant="outline" className="text-xs">
+                            You
+                          </Badge>
+                        )}
+                        {isCreator && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleDelete(meeting.id)}
+                            disabled={deletingId === meeting.id}
+                            className="h-7 w-7 p-0"
+                          >
+                            <Trash2 className="h-4 w-4 text-red-600" />
+                          </Button>
                         )}
                       </div>
                     </div>
 
-                    <div className="flex items-start gap-2">
-                      <div className="hidden md:flex items-center gap-1">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="h-8"
-                          onClick={() => {
-                            const event = createCalendarEventFromMeeting(meeting);
-                            window.open(getGoogleCalendarUrl(event), '_blank', 'noopener,noreferrer');
-                          }}
-                        >
-                          <ExternalLink className="h-3.5 w-3.5 mr-1" />
-                          Google
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="h-8"
-                          onClick={() => {
-                            const event = createCalendarEventFromMeeting(meeting);
-                            window.open(getOutlookCalendarUrl(event), '_blank', 'noopener,noreferrer');
-                          }}
-                        >
-                          <ExternalLink className="h-3.5 w-3.5 mr-1" />
-                          Outlook
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="h-8"
-                          onClick={() => {
-                            const event = createCalendarEventFromMeeting(meeting);
-                            downloadIcsFile(event, `${meeting.title.replace(/\s+/g, '-').toLowerCase() || 'meeting'}.ics`);
-                          }}
-                        >
-                          <CalendarPlus className="h-3.5 w-3.5 mr-1" />
-                          Apple
-                        </Button>
+                    <div className="flex flex-col gap-1.5 text-xs text-slate-600">
+                      <div className="flex items-center gap-1.5">
+                        <Calendar className="h-3.5 w-3.5 flex-shrink-0" />
+                        <span>{formatDate(meeting.date)}</span>
                       </div>
-                      {isCreator && (
-                        <Badge variant="outline" className="text-xs">
-                          You
-                        </Badge>
-                      )}
-                      {isCreator && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleDelete(meeting.id)}
-                          disabled={deletingId === meeting.id}
-                          className="h-8 w-8 p-0"
-                        >
-                          <Trash2 className="h-4 w-4 text-red-600" />
-                        </Button>
+
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <Clock className="h-3.5 w-3.5 flex-shrink-0" />
+                        <span>
+                          {formatTime(meeting.startTime)} - {formatTime(meeting.endTime)}
+                        </span>
+                        {formatDuration(meeting.startTime, meeting.endTime) && (
+                          <Badge variant="outline" className="text-[10px]">
+                            {formatDuration(meeting.startTime, meeting.endTime)}
+                          </Badge>
+                        )}
+                      </div>
+
+                      {meeting.createdBy && (
+                        <div className="flex items-center gap-1.5">
+                          <User className="h-3.5 w-3.5 flex-shrink-0" />
+                          <span className="break-words">Created by {meeting.createdBy.name}</span>
+                        </div>
                       )}
                     </div>
-                  </div>
-                  <div className="mt-3 flex md:hidden gap-1.5">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="h-8 text-xs"
-                      onClick={() => {
-                        const event = createCalendarEventFromMeeting(meeting);
-                        window.open(getGoogleCalendarUrl(event), '_blank', 'noopener,noreferrer');
-                      }}
-                    >
-                      Google
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="h-8 text-xs"
-                      onClick={() => {
-                        const event = createCalendarEventFromMeeting(meeting);
-                        window.open(getOutlookCalendarUrl(event), '_blank', 'noopener,noreferrer');
-                      }}
-                    >
-                      Outlook
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="h-8 text-xs"
-                      onClick={() => {
-                        const event = createCalendarEventFromMeeting(meeting);
-                        downloadIcsFile(event, `${meeting.title.replace(/\s+/g, '-').toLowerCase() || 'meeting'}.ics`);
-                      }}
-                    >
-                      Apple
-                    </Button>
+
+                    <div className="flex gap-1.5 flex-wrap">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-8 text-xs"
+                        onClick={() => {
+                          const event = createCalendarEventFromMeeting(meeting);
+                          window.open(getGoogleCalendarUrl(event), '_blank', 'noopener,noreferrer');
+                        }}
+                      >
+                        <ExternalLink className="h-3.5 w-3.5 mr-1" />
+                        Google
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-8 text-xs"
+                        onClick={() => {
+                          const event = createCalendarEventFromMeeting(meeting);
+                          window.open(getOutlookCalendarUrl(event), '_blank', 'noopener,noreferrer');
+                        }}
+                      >
+                        <ExternalLink className="h-3.5 w-3.5 mr-1" />
+                        Outlook
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-8 text-xs"
+                        onClick={() => {
+                          const event = createCalendarEventFromMeeting(meeting);
+                          downloadIcsFile(event, `${meeting.title.replace(/\s+/g, '-').toLowerCase() || 'meeting'}.ics`);
+                        }}
+                      >
+                        <CalendarPlus className="h-3.5 w-3.5 mr-1" />
+                        Apple
+                      </Button>
+                    </div>
                   </div>
                 </div>
               );
