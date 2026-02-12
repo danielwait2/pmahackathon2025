@@ -151,22 +151,9 @@ export function AvailabilityTab({
         </TabsContent>
 
         <TabsContent value="schedule" className="space-y-4">
-          <UpcomingMeetings
-            projectId={projectId}
-            currentUserId={currentUserId}
-            refreshTrigger={meetingRefreshTrigger}
-          />
-
           <div className="grid gap-4 xl:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)]">
             <div className="min-w-0">
-              <TeamAvailability
-                projectId={projectId}
-                availabilities={teamData}
-                weekOffset={weekOffset}
-                compact
-                onMeetingScheduled={handleMeetingScheduled}
-                meetingRefreshTrigger={meetingRefreshTrigger}
-              />
+              <TeamAvailability availabilities={teamData} weekOffset={weekOffset} compact />
             </div>
             <div className="space-y-4 min-w-0">
               <MeetingFinder
@@ -175,6 +162,11 @@ export function AvailabilityTab({
                 minDuration={1}
                 onMeetingScheduled={handleMeetingScheduled}
                 weekOffset={weekOffset}
+              />
+              <UpcomingMeetings
+                projectId={projectId}
+                currentUserId={currentUserId}
+                refreshTrigger={meetingRefreshTrigger}
               />
             </div>
           </div>
