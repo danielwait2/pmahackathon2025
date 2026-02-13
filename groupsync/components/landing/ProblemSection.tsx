@@ -5,12 +5,12 @@ import { Card, CardContent } from '@/components/ui/card';
 const problemStats = [
   {
     icon: CalendarClock,
-    stat: '39%',
+    stat: '65%',
     description: 'say scheduling is their biggest frustration',
   },
   {
     icon: Users,
-    stat: '68%',
+    stat: '90%',
     description: 'would use a tool that makes collaboration smoother',
   },
   {
