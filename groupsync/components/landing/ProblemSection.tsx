@@ -41,7 +41,7 @@ export function ProblemSection() {
           ))}
         </div>
         <p className="mt-6 text-center text-sm text-slate-500">
-          Based on survey of 31 university students
+          Based on survey of 32 university students
         </p>
       </div>
     </section>
