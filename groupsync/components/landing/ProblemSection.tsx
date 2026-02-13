@@ -5,7 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 const problemStats = [
   {
     icon: CalendarClock,
-    stat: '65%',
+    stat: '90%',
     description: 'say scheduling is their biggest frustration',
   },
   {
