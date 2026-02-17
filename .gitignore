@@ -1,5 +1,13 @@
 node_modules
+
 # Keep environment variables out of version control
 .env
+.env.local
+.env*.local
 
 /generated/prisma
+
+# AI tool configs (personal, not shared) — root-level only
+/CLAUDE.md
+/.cursorrules
+/.geminirc

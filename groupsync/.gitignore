@@ -39,3 +39,11 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# AI personal workspace (gitignored - use aiDocs/ for shared team docs)
+ai/
+.cursorrules
+.geminirc
+
+# Keep .github/ for GitHub Actions and Copilot instructions
+!.github/
