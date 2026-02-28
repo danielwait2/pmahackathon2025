@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { format } from 'date-fns';
-import { ArchiveRestore, ArchiveX, ArrowLeft, BookOpen, CalendarClock, Copy, Users } from 'lucide-react';
+import { ArrowLeft, BookOpen, CalendarClock, Check, Copy, Users } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { Badge } from '@/components/ui/badge';
@@ -67,13 +67,13 @@ export function ProjectHeader({
       });
       if (!res.ok) {
         const data = await res.json();
-        toast.error(data.error ?? 'Unable to update archive status.');
+        toast.error(data.error ?? 'Unable to update project status.');
         return;
       }
-      toast.success(nextArchived ? 'Project archived.' : 'Project restored.');
+      toast.success(nextArchived ? 'Project marked completed.' : 'Project moved back to active.');
       router.refresh();
     } catch {
-      toast.error('Unable to update archive status.');
+      toast.error('Unable to update project status.');
     } finally {
       setUpdatingArchive(false);
     }
@@ -101,8 +101,8 @@ export function ProjectHeader({
               </Badge>
             )}
             {isArchived && (
-              <Badge variant="secondary" className="bg-slate-200 text-slate-700">
-                Archived
+              <Badge variant="secondary" className="bg-emerald-100 text-emerald-800">
+                Completed
               </Badge>
             )}
           </div>
@@ -115,15 +115,21 @@ export function ProjectHeader({
             {copying ? 'Copying...' : 'Copy'}
           </Button>
           {isOwner && projectId && (
-            <Button
-              variant="outline"
-              size="sm"
+            <button
+              type="button"
+              className="inline-flex items-center gap-2 rounded-md border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
               disabled={updatingArchive}
               onClick={() => void handleArchiveToggle(!isArchived)}
             >
-              {isArchived ? <ArchiveRestore className="h-4 w-4" /> : <ArchiveX className="h-4 w-4" />}
-              {updatingArchive ? 'Saving...' : isArchived ? 'Restore project' : 'Archive project'}
-            </Button>
+              <span
+                className={`inline-flex h-4 w-4 items-center justify-center rounded border ${
+                  isArchived ? 'border-emerald-600 bg-emerald-600 text-white' : 'border-slate-400 bg-white text-white'
+                }`}
+              >
+                <Check className="h-3 w-3" />
+              </span>
+              {updatingArchive ? 'Saving...' : isArchived ? 'Completed' : 'Mark completed'}
+            </button>
           )}
         </div>
       </div>

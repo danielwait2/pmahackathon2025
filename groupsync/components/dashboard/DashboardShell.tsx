@@ -115,7 +115,7 @@ export function DashboardShell({
                 variant={projectView === 'archived' ? 'default' : 'outline'}
                 onClick={() => setProjectView('archived')}
               >
-                Past ({archivedProjects.length})
+                Completed ({archivedProjects.length})
               </Button>
             </div>
           </div>

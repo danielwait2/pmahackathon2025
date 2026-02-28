@@ -22,7 +22,7 @@ export function ProjectList({
 }: ProjectListProps) {
   if (!projects.length) {
     if (emptyStateMode === 'archived') {
-      return <p className="rounded-xl border border-slate-200 bg-white p-6 text-sm text-slate-600">No past projects yet.</p>;
+      return <p className="rounded-xl border border-slate-200 bg-white p-6 text-sm text-slate-600">No completed projects yet.</p>;
     }
     return <EmptyState onCreateProject={onCreateProject} onJoinProject={onJoinProject} />;
   }

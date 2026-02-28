@@ -3,7 +3,7 @@
 import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { differenceInCalendarDays, format } from 'date-fns';
-import { ArchiveRestore, ArchiveX, BookOpen, CalendarClock, CheckCircle2, Users } from 'lucide-react';
+import { BookOpen, CalendarClock, Check, CheckCircle2, Users } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { Avatar, AvatarFallback, AvatarGroup, AvatarGroupCount, AvatarImage } from '@/components/ui/avatar';
@@ -71,13 +71,13 @@ export function ProjectCard({ project, currentUserId }: ProjectCardProps) {
       });
       if (!res.ok) {
         const data = await res.json();
-        toast.error(data.error ?? 'Unable to update project archive status.');
+        toast.error(data.error ?? 'Unable to update project status.');
         return;
       }
-      toast.success(nextArchived ? 'Project archived.' : 'Project restored.');
+      toast.success(nextArchived ? 'Project marked completed.' : 'Project moved back to active.');
       router.refresh();
     } catch {
-      toast.error('Unable to update project archive status.');
+      toast.error('Unable to update project status.');
     } finally {
       setUpdatingArchive(false);
     }
@@ -98,8 +98,8 @@ export function ProjectCard({ project, currentUserId }: ProjectCardProps) {
               </Badge>
             )}
             {project.archivedAt && (
-              <Badge variant="secondary" className="shrink-0 bg-slate-200 text-slate-700 text-xs">
-                Archived
+              <Badge variant="secondary" className="shrink-0 bg-emerald-100 text-emerald-800 text-xs">
+                Completed
               </Badge>
             )}
           </div>
@@ -136,19 +136,21 @@ export function ProjectCard({ project, currentUserId }: ProjectCardProps) {
           <div className="flex justify-end">
             <button
               type="button"
-              className="inline-flex items-center gap-1 text-xs font-medium text-slate-600 hover:text-slate-900"
+              className="inline-flex items-center gap-2 rounded-md border border-slate-300 px-2 py-1 text-xs font-medium text-slate-700 hover:bg-slate-50"
               onClick={(event) => {
                 event.stopPropagation();
                 void handleArchiveToggle(!project.archivedAt);
               }}
               disabled={updatingArchive}
             >
-              {project.archivedAt ? <ArchiveRestore className="h-3.5 w-3.5" /> : <ArchiveX className="h-3.5 w-3.5" />}
-              {updatingArchive
-                ? 'Saving...'
-                : project.archivedAt
-                  ? 'Restore project'
-                  : 'Archive project'}
+              <span
+                className={`inline-flex h-4 w-4 items-center justify-center rounded border ${
+                  project.archivedAt ? 'border-emerald-600 bg-emerald-600 text-white' : 'border-slate-400 bg-white text-white'
+                }`}
+              >
+                <Check className="h-3 w-3" />
+              </span>
+              {updatingArchive ? 'Saving...' : project.archivedAt ? 'Completed' : 'Mark completed'}
             </button>
           </div>
         )}
