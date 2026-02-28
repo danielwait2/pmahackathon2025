@@ -30,6 +30,7 @@ interface ProjectTabsProps {
   teamAgreement: TeamAgreementData | null;
   availabilities: UserAvailability[];
   currentUserAvailability: string;
+  isUsingGeneralDefault?: boolean;
   recentCollaborators: Array<{ id: string; name: string; email: string | null }>;
   pendingRequestUserIds: string[];
 }
@@ -46,6 +47,7 @@ export function ProjectTabs({
   teamAgreement,
   availabilities,
   currentUserAvailability,
+  isUsingGeneralDefault = false,
   recentCollaborators,
   pendingRequestUserIds,
 }: ProjectTabsProps) {
@@ -83,6 +85,7 @@ export function ProjectTabs({
           currentUserId={actualUserId}
           initialSlots={currentUserAvailability}
           teamAvailabilities={availabilities}
+          isUsingGeneralDefault={isUsingGeneralDefault}
         />
       </TabsContent>
 

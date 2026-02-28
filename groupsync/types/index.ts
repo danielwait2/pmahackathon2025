@@ -60,6 +60,13 @@ export interface ProjectMemberRequest {
   respondedAt: string | null;
 }
 
+export interface UserAvailabilityDefault {
+  id: string;
+  userId: string;
+  slots: string;
+  updatedAt: string;
+}
+
 export interface Task {
   id: string;
   projectId: string;

@@ -25,6 +25,9 @@ model User {
   sentMemberRequests     ProjectMemberRequest[] @relation("RequestFromUser")
   receivedMemberRequests ProjectMemberRequest[] @relation("RequestToUser")
   classCalendarFeeds ClassCalendarFeed[]
+  availabilityDefault UserAvailabilityDefault?
+  availabilityBlocks  UserAvailabilityBlock[]
+  calendarToken       UserCalendarToken?
 
   @@map("users")
 }
@@ -134,6 +137,7 @@ model Meeting {
   startTime   String   // HH:mm
   endTime     String   // HH:mm
   createdById String?  @map("created_by")
+  videoUrl    String?  @map("video_url")
   createdAt   DateTime @default(now()) @map("created_at")
 
   project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
@@ -198,4 +202,39 @@ model ClassCalendarFeed {
 
   @@unique([userId, classId, provider])
   @@map("class_calendar_feeds")
+}
+
+model UserAvailabilityDefault {
+  id        String   @id @default(uuid())
+  userId    String   @unique @map("user_id")
+  slots     String   @default("[]")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_availability_defaults")
+}
+
+model UserAvailabilityBlock {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  day       Int      @map("day")
+  startHour Float    @map("start_hour")
+  endHour   Float    @map("end_hour")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_availability_blocks")
+}
+
+model UserCalendarToken {
+  userId       String   @id @map("user_id")
+  accessToken  String   @map("access_token")
+  refreshToken String?  @map("refresh_token")
+  expiryDate   DateTime @map("expiry_date")
+
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_calendar_tokens")
 }

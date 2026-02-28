@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getProjectMember } from '@/lib/auth-helpers';
+import { validateSlots } from '@/lib/availability-validation';
 
 export async function POST(request: Request) {
   const body = await request.json();
@@ -12,34 +13,14 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'projectId is required' }, { status: 400 });
   }
 
-  if (!Array.isArray(slots)) {
-    return NextResponse.json({ error: 'slots must be an array' }, { status: 400 });
+  const validation = validateSlots(slots);
+  if (!validation.valid) {
+    return NextResponse.json({ error: validation.error }, { status: 400 });
   }
 
   const member = await getProjectMember(projectId);
   if (!member) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-
-  // Validate slots structure
-  for (const slot of slots) {
-    if (
-      typeof slot.day !== 'number' ||
-      typeof slot.startHour !== 'number' ||
-      typeof slot.endHour !== 'number' ||
-      slot.day < 0 ||
-      slot.day > 6 ||
-      slot.startHour < 0 ||
-      slot.startHour > 23 ||
-      slot.endHour < 0 ||
-      slot.endHour > 24 ||
-      slot.startHour >= slot.endHour
-    ) {
-      return NextResponse.json(
-        { error: 'Invalid slot format. Each slot must have day (0-6), startHour (0-23), and endHour (0-24)' },
-        { status: 400 }
-      );
-    }
   }
 
   // Upsert availability (create or update)

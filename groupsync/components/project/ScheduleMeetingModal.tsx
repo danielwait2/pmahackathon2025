@@ -38,6 +38,7 @@ interface ScheduledMeeting {
   date: string;
   startTime: string;
   endTime: string;
+  videoUrl?: string | null;
 }
 
 export function ScheduleMeetingModal({
@@ -63,6 +64,8 @@ export function ScheduleMeetingModal({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [scheduledMeeting, setScheduledMeeting] = useState<ScheduledMeeting | null>(null);
+  const [createGoogleMeet, setCreateGoogleMeet] = useState(false);
+  const [createZoomLink, setCreateZoomLink] = useState(false);
 
   useEffect(() => {
     const nextDuration =
@@ -110,12 +113,28 @@ export function ScheduleMeetingModal({
       }
 
       const meeting = await response.json();
+      let videoUrl: string | null = meeting.videoUrl ?? null;
+
+      if (createGoogleMeet || createZoomLink) {
+        const provider = createGoogleMeet ? 'google' : 'zoom';
+        const linkRes = await fetch(`/api/meetings/${meeting.id}/video-link`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ provider }),
+        });
+        if (linkRes.ok) {
+          const linkData = await linkRes.json();
+          videoUrl = linkData.videoUrl ?? null;
+        }
+      }
+
       setScheduledMeeting({
         id: meeting.id,
         title: meeting.title,
         date: meeting.date,
         startTime: meeting.startTime,
         endTime: meeting.endTime,
+        videoUrl,
       });
       onSuccess();
 
@@ -125,6 +144,8 @@ export function ScheduleMeetingModal({
       setStartTime(prefilledStartTime);
       setDurationMinutes(initialDuration);
       setEndTime(calculateEndTime(prefilledStartTime, initialDuration));
+      setCreateGoogleMeet(false);
+      setCreateZoomLink(false);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to schedule meeting');
     } finally {
@@ -137,6 +158,8 @@ export function ScheduleMeetingModal({
       setError('');
       setTitle('');
       setScheduledMeeting(null);
+      setCreateGoogleMeet(false);
+      setCreateZoomLink(false);
       onClose();
     }
   };
@@ -177,6 +200,19 @@ export function ScheduleMeetingModal({
               <p className="mt-1">
                 {scheduledMeeting.date} {scheduledMeeting.startTime} - {scheduledMeeting.endTime}
               </p>
+              {scheduledMeeting.videoUrl && (
+                <p className="mt-2">
+                  <a
+                    href={scheduledMeeting.videoUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 font-medium underline"
+                  >
+                    Join meeting
+                    <ExternalLink className="h-3.5 w-3.5" />
+                  </a>
+                </p>
+              )}
             </div>
 
             <div className="grid gap-2 sm:grid-cols-3">
@@ -283,6 +319,34 @@ export function ScheduleMeetingModal({
                 readOnly
                 disabled
               />
+            </div>
+
+            <div className="space-y-2 rounded-md border border-slate-200 p-3">
+              <p className="text-sm font-medium text-slate-800">Meeting link</p>
+              <label className="flex items-center gap-2 text-sm text-slate-700">
+                <input
+                  type="checkbox"
+                  checked={createGoogleMeet}
+                  onChange={(e) => {
+                    setCreateGoogleMeet(e.target.checked);
+                    if (e.target.checked) setCreateZoomLink(false);
+                  }}
+                  disabled={isSubmitting}
+                />
+                Create Google Meet link
+              </label>
+              <label className="flex items-center gap-2 text-sm text-slate-700">
+                <input
+                  type="checkbox"
+                  checked={createZoomLink}
+                  onChange={(e) => {
+                    setCreateZoomLink(e.target.checked);
+                    if (e.target.checked) setCreateGoogleMeet(false);
+                  }}
+                  disabled={isSubmitting}
+                />
+                Create Zoom link
+              </label>
             </div>
 
             {error && (
