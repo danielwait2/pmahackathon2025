@@ -14,6 +14,7 @@
 |---|--------------------------------------------------------|----------|--------|----------|
 | 1 | Account-level classes + \"my classes\" dropdown        | High     | Medium | ⬜ Not started |
 | 2 | Directly add members to projects (public profiles + requests) | High     | High   | ⬜ Not started |
+| 3 | Calendar feed → classes + assignments/projects        | Medium   | Medium | ⬜ Not started |
 
 ---
 
@@ -433,3 +434,240 @@ Steps:
 - [ ] Recently added collaborators appear at the top of the add-member UI
 - [ ] Type checks and lints pass after all changes
 
+---
+
+## Feature 3 – Calendar Feed → Classes & Assignments/Projects
+
+### 3.1 Context
+
+Many classes already publish **iCal/ICS feeds** with all assignments and events. Example formats:
+
+- Learning Suite class feed:  
+  `https://learningsuite.byu.edu/iCalFeed/ical.php?courseID=Obk0gLGZ6ywV`
+- Canvas calendar feed:  
+  `https://byu.instructure.com/feeds/calendars/user_n0e3egOe7FlxJv2LuecXIQsbdAPnaqxP0XtmWp0Z.ics`
+
+We want:
+
+1. A way for users to **paste a calendar URL** to create a class in GroupSync
+2. Parse the feed and **turn events into assignments or projects**:
+   - **Default:** treat events as assignments
+   - If the title/description contains words like \"group\" or \"project\", treat as a **project**
+3. Map:
+   - **Due date** → assignment due date / project deadline
+   - **Details** → task/description field
+
+### 3.2 What to build
+
+1. **Calendar import entry point** – UI where a user can paste a calendar URL and associate it with a class
+2. **ICS parser** – Backend logic to parse `.ics` feeds into a normalized event structure
+3. **Classification & mapping** – Decide per event whether it becomes:
+   - A **Project** (for group/project-style items)
+   - An **Assignment** (Task) belonging to a class
+4. **Idempotent sync** – Avoid creating duplicate tasks/projects on repeated imports
+
+---
+
+### 3.3 Data model
+
+**File:** `groupsync/prisma/schema.prisma`
+
+Add a way to remember calendar feeds per class/user:
+
+```prisma
+model ClassCalendarFeed {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")      // owner of this integration
+  classId   String   @map("class_id")     // global Class this feed belongs to
+  url       String   @map("url")
+  provider  String   @map("provider")     // 'learningsuite' | 'canvas' | 'other'
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  class     Class    @relation(fields: [classId], references: [id], onDelete: Cascade)
+
+  @@map("class_calendar_feeds")
+}
+```
+
+You can extend this later with fields for last sync time, sync status, etc.
+
+> Assumption: **Assignments** are represented as `Task` rows; we’ll use \"assignment\" in the UI but map to tasks in the DB.
+
+---
+
+### 3.4 API – add calendar link and import events
+
+**File:** `groupsync/app/api/classes/import-calendar/route.ts`
+
+Endpoint: `POST /api/classes/import-calendar`
+
+Body:
+
+```json
+{
+  "name": "STRAT 560-002",
+  "calendarUrl": "https://learningsuite.byu.edu/iCalFeed/ical.php?courseID=Obk0gLGZ6ywV"
+}
+```
+
+Steps:
+
+1. **Auth & user** – Use `getServerSession(authOptions)` to get current user.
+2. **Normalize class**:
+   - Use existing `normalizeClassName` on `name`
+   - Find or create global `Class` row
+   - Ensure a `UserClass` row exists so this class shows up under \"My classes\"
+3. **Create or update feed:**
+   - Detect provider by URL (`learningsuite`, `canvas`, or `other`)
+   - Upsert `ClassCalendarFeed` for `(userId, classId, provider)`
+4. **Fetch ICS feed server-side:**
+   - Use `fetch(calendarUrl)` on the server
+   - Pass raw text to an ICS parser helper (see next section)
+5. **Map events → internal structures**:
+   - For each event:
+     - Extract:
+       - `summary` (title)
+       - `description`
+       - `dtstart` (date/time or all-day date)
+       - `dtend` (optional)
+   - Build a normalized `ImportedCalendarEvent` object:
+
+```ts
+interface ImportedCalendarEvent {
+  uid: string;
+  title: string;
+  description: string;
+  start: Date;
+  end: Date | null;
+  allDay: boolean;
+}
+```
+
+6. **Create projects vs assignments:**
+   - Determine type by inspecting `title` and `description` (case-insensitive):
+     - If includes `group`, `project`, or similar keywords ⇒ treat as **Project**
+     - Else ⇒ treat as **Assignment** (Task)
+
+7. **Persist:**
+   - **Project path:**
+     - Create a `Project`:
+       - `name` = event title
+       - `description` = event description
+       - `deadline` = `start` (or `end` if more appropriate)
+       - Link to `Class` via `classId` if you’ve added that relationship
+     - Ensure project members include the current user
+
+   - **Assignment path:**
+     - Decide which project to attach tasks to:
+       - Option A: Create a single \"Class [name]\" project per class and attach tasks there
+       - Option B: Attach to an existing project the user selects during import (document which you choose)
+     - Create a `Task`:
+       - `title` = event title
+       - `description` = event description (full ICS DESCRIPTION)
+       - `dueDate` = `start` (for all-day events, treat as due at local end-of-day or midday)
+       - `status` = `'todo'`
+
+8. **Idempotency (no duplicates):**
+   - Include the ICS `UID` in your mapping:
+     - Option: Add a `sourceUid` + `sourceProvider` on `Task` and `Project` (or a small `CalendarImportMapping` table)
+   - Before creating a task/project, check if an item already exists for that `(userId, classId, uid)` and update instead of duplicating.
+
+Return:
+
+```json
+{
+  "classId": "c1",
+  "createdProjects": 3,
+  "createdAssignments": 27
+}
+```
+
+---
+
+### 3.5 ICS parsing helper
+
+**File:** `groupsync/lib/calendar-import.ts` (new)
+
+Implement a small helper to parse ICS feeds:
+
+```ts
+export interface ImportedCalendarEvent {
+  uid: string;
+  title: string;
+  description: string;
+  start: Date;
+  end: Date | null;
+  allDay: boolean;
+}
+
+export function parseIcsFeed(icsText: string): ImportedCalendarEvent[] {
+  // Option A: use a library like `node-ical`
+  // Option B: implement a minimal parser:
+  // - Split by "BEGIN:VEVENT" / "END:VEVENT"
+  // - For each block, read lines starting with UID:, SUMMARY:, DESCRIPTION:, DTSTART, DTEND
+  // - Parse DTSTART/DTEND into Date objects (handle VALUE=DATE vs full timestamps)
+  // - Normalize line folding (lines starting with space are continuations)
+  // Return an array of ImportedCalendarEvent
+}
+```
+
+Guidelines:
+- Handle both all-day (`DTSTART;VALUE=DATE:YYYYMMDD`) and timed events (`DTSTART:YYYYMMDDTHHMMSSZ`)
+- Preserve full DESCRIPTION for assignment details
+
+---
+
+### 3.6 UI – adding a calendar link
+
+**Files:**
+- `groupsync/components/dashboard/MyClassesPanel.tsx`
+- Or a new `groupsync/components/dashboard/AddClassFromCalendarDialog.tsx`
+
+Flow:
+
+1. In \"My Classes\" panel, add an **\"Add from calendar\"** button.
+2. Dialog fields:
+   - Class name (text input)
+   - Calendar URL (text input)
+   - Provider (auto-detected from URL, but allow override if needed)
+3. On submit:
+   - Call `POST /api/classes/import-calendar`
+   - Show progress / success counts
+   - Refresh dashboard so:
+     - The class appears under \"My classes\"
+     - The related project(s)/assignments appear in the appropriate lists
+
+Optional:
+- For Learning Suite vs Canvas:
+  - Show example placeholders:
+    - \"Example (Learning Suite): https://learningsuite.byu.edu/iCalFeed/ical.php?courseID=... \"
+    - \"Example (Canvas): https://byu.instructure.com/feeds/calendars/....ics\"
+
+---
+
+### 3.7 Classification rules (assignment vs project)
+
+Implement a simple heuristic:
+
+- **Project keywords** (case-insensitive, search in title + description):
+  - `\"group project\"`, `\"group assignment\"`, `\"group work\"`, `\"project\"`, `\"team project\"`
+- If any project keyword matches ⇒ create a **Project**
+- Else ⇒ create an **Assignment** (Task)
+
+You can refine this over time or allow per-import overrides in the UI.
+
+---
+
+### 3.8 Verification
+
+- [ ] User can paste a Learning Suite calendar URL and create/import a class
+- [ ] User can paste a Canvas calendar URL and create/import a class
+- [ ] Events become **assignments** by default (tasks with due dates and descriptions)
+- [ ] Events containing \"group\"/\"project\" in the title/description become **projects**
+- [ ] Each event’s due date is correctly mapped from `DTSTART` (and `DTEND` if used)
+- [ ] Assignment details from ICS DESCRIPTION appear in the task description
+- [ ] Re-running import does not create duplicate tasks/projects for the same ICS events
+- [ ] Imported classes appear under \"My classes\" and are usable throughout the app
+- [ ] Type checks and lints pass after implementation
