@@ -106,6 +106,7 @@ export default async function DashboardPage() {
         classId: project.classId,
         className: project.class?.name ?? project.classLabel ?? null,
         isAssignment: project.isAssignment ?? false,
+        archivedAt: project.archivedAt?.toISOString() ?? null,
         created_by: project.createdById,
         invite_code: project.inviteCode,
         created_at: project.createdAt.toISOString(),
@@ -158,6 +159,7 @@ export default async function DashboardPage() {
     <main className="min-h-screen bg-slate-50">
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <DashboardShell
+          currentUserId={session.user.id}
           userName={user?.name ?? session.user?.name ?? 'GroupSync User'}
           userEmail={user?.email ?? session.user?.email ?? ''}
           userAvatarUrl={user?.avatarUrl ?? null}

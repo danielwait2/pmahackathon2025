@@ -1,9 +1,10 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { differenceInCalendarDays, format } from 'date-fns';
-import { BookOpen, CalendarClock, CheckCircle2, Users } from 'lucide-react';
+import { ArchiveRestore, ArchiveX, BookOpen, CalendarClock, CheckCircle2, Users } from 'lucide-react';
+import { toast } from 'sonner';
 
 import { Avatar, AvatarFallback, AvatarGroup, AvatarGroupCount, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -13,6 +14,7 @@ import { DashboardProject } from '@/types';
 
 interface ProjectCardProps {
   project: DashboardProject;
+  currentUserId: string;
 }
 
 function getInitials(name: string) {
@@ -44,8 +46,9 @@ function getDeadlineState(deadline: string | null) {
   return { label: `${daysLeft} days left`, className: 'bg-emerald-100 text-emerald-700' };
 }
 
-export function ProjectCard({ project }: ProjectCardProps) {
+export function ProjectCard({ project, currentUserId }: ProjectCardProps) {
   const router = useRouter();
+  const [updatingArchive, setUpdatingArchive] = useState(false);
 
   const progressPercent = useMemo(() => {
     if (!project.total_tasks) return 0;
@@ -55,6 +58,30 @@ export function ProjectCard({ project }: ProjectCardProps) {
   const deadline = getDeadlineState(project.deadline);
   const shownMembers = project.members.slice(0, 3);
   const overflow = Math.max(project.member_count - shownMembers.length, 0);
+  const isOwner = project.created_by === currentUserId;
+
+  const handleArchiveToggle = async (nextArchived: boolean) => {
+    if (updatingArchive) return;
+    setUpdatingArchive(true);
+    try {
+      const res = await fetch(`/api/projects/${project.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ archived: nextArchived }),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        toast.error(data.error ?? 'Unable to update project archive status.');
+        return;
+      }
+      toast.success(nextArchived ? 'Project archived.' : 'Project restored.');
+      router.refresh();
+    } catch {
+      toast.error('Unable to update project archive status.');
+    } finally {
+      setUpdatingArchive(false);
+    }
+  };
 
   return (
     <Card
@@ -68,6 +95,11 @@ export function ProjectCard({ project }: ProjectCardProps) {
             {project.isAssignment && (
               <Badge variant="secondary" className="shrink-0 bg-amber-100 text-amber-800 text-xs">
                 Assignment
+              </Badge>
+            )}
+            {project.archivedAt && (
+              <Badge variant="secondary" className="shrink-0 bg-slate-200 text-slate-700 text-xs">
+                Archived
               </Badge>
             )}
           </div>
@@ -100,6 +132,26 @@ export function ProjectCard({ project }: ProjectCardProps) {
             {overflow > 0 && <AvatarGroupCount className="text-xs">+{overflow}</AvatarGroupCount>}
           </AvatarGroup>
         </div>
+        {isOwner && (
+          <div className="flex justify-end">
+            <button
+              type="button"
+              className="inline-flex items-center gap-1 text-xs font-medium text-slate-600 hover:text-slate-900"
+              onClick={(event) => {
+                event.stopPropagation();
+                void handleArchiveToggle(!project.archivedAt);
+              }}
+              disabled={updatingArchive}
+            >
+              {project.archivedAt ? <ArchiveRestore className="h-3.5 w-3.5" /> : <ArchiveX className="h-3.5 w-3.5" />}
+              {updatingArchive
+                ? 'Saving...'
+                : project.archivedAt
+                  ? 'Restore project'
+                  : 'Archive project'}
+            </button>
+          </div>
+        )}
 
         {!project.isAssignment && (
         <div className="space-y-2">

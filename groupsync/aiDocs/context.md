@@ -227,3 +227,11 @@ groupsync/
 **Created:** 2026-02-14
 **Last Updated:** 2026-02-14
 **Maintained By:** GroupSync Team
+
+---
+
+## 2026-02-28 Archive Behavior
+
+- Joining archived projects remains allowed through existing join/share flows.
+- Archiving affects dashboard visibility only (Active vs Past).
+- Archived projects stay fully editable and accessible via direct project URL.

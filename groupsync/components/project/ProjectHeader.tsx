@@ -2,8 +2,9 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { format } from 'date-fns';
-import { ArrowLeft, BookOpen, CalendarClock, Copy, Users } from 'lucide-react';
+import { ArchiveRestore, ArchiveX, ArrowLeft, BookOpen, CalendarClock, Copy, Users } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { Badge } from '@/components/ui/badge';
@@ -22,10 +23,26 @@ interface ProjectHeaderProps {
   shareToken?: string | null;
   isOwner?: boolean;
   projectId?: string;
+  archivedAt?: string | null;
 }
 
-export function ProjectHeader({ name, description, deadline, className, isAssignment, inviteCode, memberCount, shareToken, isOwner, projectId }: ProjectHeaderProps) {
+export function ProjectHeader({
+  name,
+  description,
+  deadline,
+  className,
+  isAssignment,
+  inviteCode,
+  memberCount,
+  shareToken,
+  isOwner,
+  projectId,
+  archivedAt,
+}: ProjectHeaderProps) {
+  const router = useRouter();
   const [copying, setCopying] = useState(false);
+  const [updatingArchive, setUpdatingArchive] = useState(false);
+  const isArchived = !!archivedAt;
 
   const copyCode = async () => {
     setCopying(true);
@@ -36,6 +53,29 @@ export function ProjectHeader({ name, description, deadline, className, isAssign
       toast.error('Unable to copy invite code.');
     } finally {
       setCopying(false);
+    }
+  };
+
+  const handleArchiveToggle = async (nextArchived: boolean) => {
+    if (!projectId || updatingArchive) return;
+    setUpdatingArchive(true);
+    try {
+      const res = await fetch(`/api/projects/${projectId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ archived: nextArchived }),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        toast.error(data.error ?? 'Unable to update archive status.');
+        return;
+      }
+      toast.success(nextArchived ? 'Project archived.' : 'Project restored.');
+      router.refresh();
+    } catch {
+      toast.error('Unable to update archive status.');
+    } finally {
+      setUpdatingArchive(false);
     }
   };
 
@@ -60,6 +100,11 @@ export function ProjectHeader({ name, description, deadline, className, isAssign
                 Assignment
               </Badge>
             )}
+            {isArchived && (
+              <Badge variant="secondary" className="bg-slate-200 text-slate-700">
+                Archived
+              </Badge>
+            )}
           </div>
           {description ? <p className="max-w-3xl text-slate-600">{description}</p> : null}
         </div>
@@ -69,6 +114,17 @@ export function ProjectHeader({ name, description, deadline, className, isAssign
             <Copy className="h-4 w-4" />
             {copying ? 'Copying...' : 'Copy'}
           </Button>
+          {isOwner && projectId && (
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={updatingArchive}
+              onClick={() => void handleArchiveToggle(!isArchived)}
+            >
+              {isArchived ? <ArchiveRestore className="h-4 w-4" /> : <ArchiveX className="h-4 w-4" />}
+              {updatingArchive ? 'Saving...' : isArchived ? 'Restore project' : 'Archive project'}
+            </Button>
+          )}
         </div>
       </div>
       <div className="flex flex-wrap items-center gap-3 text-sm text-slate-600">

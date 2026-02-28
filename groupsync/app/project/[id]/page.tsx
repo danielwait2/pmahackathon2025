@@ -126,6 +126,7 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
           shareToken={project.shareToken}
           isOwner={!member.isGuest && project.createdById === member.userId}
           projectId={project.id}
+          archivedAt={project.archivedAt?.toISOString() ?? null}
         />
         <ProjectTabs
           projectId={project.id}

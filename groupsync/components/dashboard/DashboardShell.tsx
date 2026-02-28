@@ -18,6 +18,7 @@ import { Button } from '@/components/ui/button';
 import { DashboardAssignedTask, DashboardProject } from '@/types';
 
 interface DashboardShellProps {
+  currentUserId: string;
   userName: string;
   userEmail: string;
   userAvatarUrl: string | null;
@@ -38,6 +39,7 @@ function getInitials(nameOrEmail: string) {
 }
 
 export function DashboardShell({
+  currentUserId,
   userName,
   userEmail,
   userAvatarUrl,
@@ -50,6 +52,11 @@ export function DashboardShell({
   const [createOpen, setCreateOpen] = useState(false);
   const [joinOpen, setJoinOpen] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
+  const [projectView, setProjectView] = useState<'active' | 'archived'>('active');
+
+  const activeProjects = projects.filter((project) => !project.archivedAt);
+  const archivedProjects = projects.filter((project) => !!project.archivedAt);
+  const visibleProjects = projectView === 'active' ? activeProjects : archivedProjects;
 
   const handleLogout = async () => {
     setLoggingOut(true);
@@ -93,8 +100,32 @@ export function DashboardShell({
         </header>
 
         <section className="space-y-4">
-          <h1 className="text-3xl font-black tracking-tight text-slate-900">Your Projects</h1>
-          <ProjectList projects={projects} onCreateProject={() => setCreateOpen(true)} onJoinProject={() => setJoinOpen(true)} />
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <h1 className="text-3xl font-black tracking-tight text-slate-900">Your Projects</h1>
+            <div className="flex items-center gap-2">
+              <Button
+                size="sm"
+                variant={projectView === 'active' ? 'default' : 'outline'}
+                onClick={() => setProjectView('active')}
+              >
+                Active ({activeProjects.length})
+              </Button>
+              <Button
+                size="sm"
+                variant={projectView === 'archived' ? 'default' : 'outline'}
+                onClick={() => setProjectView('archived')}
+              >
+                Past ({archivedProjects.length})
+              </Button>
+            </div>
+          </div>
+          <ProjectList
+            projects={visibleProjects}
+            currentUserId={currentUserId}
+            emptyStateMode={projectView}
+            onCreateProject={() => setCreateOpen(true)}
+            onJoinProject={() => setJoinOpen(true)}
+          />
         </section>
 
         <section>
