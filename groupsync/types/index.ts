@@ -41,6 +41,23 @@ export interface Class {
   createdAt: string;
 }
 
+export interface UserClass {
+  id: string;
+  userId: string;
+  classId: string;
+  createdAt: string;
+}
+
+export interface ProjectMemberRequest {
+  id: string;
+  projectId: string;
+  fromUserId: string;
+  toUserId: string;
+  status: 'pending' | 'accepted' | 'declined';
+  createdAt: string;
+  respondedAt: string | null;
+}
+
 export interface Task {
   id: string;
   projectId: string;

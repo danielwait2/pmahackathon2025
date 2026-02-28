@@ -37,6 +37,19 @@ export async function POST(request: Request) {
   });
 
   if (existing) {
+    await prisma.userClass.upsert({
+      where: {
+        userId_classId: {
+          userId: session.user.id,
+          classId: existing.id,
+        },
+      },
+      create: {
+        userId: session.user.id,
+        classId: existing.id,
+      },
+      update: {},
+    });
     return NextResponse.json(existing);
   }
 
@@ -44,6 +57,20 @@ export async function POST(request: Request) {
     const created = await prisma.class.create({
       data: { name: normalizedName },
       select: { id: true, name: true, createdAt: true },
+    });
+
+    await prisma.userClass.upsert({
+      where: {
+        userId_classId: {
+          userId: session.user.id,
+          classId: created.id,
+        },
+      },
+      create: {
+        userId: session.user.id,
+        classId: created.id,
+      },
+      update: {},
     });
 
     return NextResponse.json(created, { status: 201 });

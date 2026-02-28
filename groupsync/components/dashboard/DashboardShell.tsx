@@ -7,6 +7,9 @@ import { toast } from 'sonner';
 
 import { CreateProjectWizard } from '@/components/dashboard/CreateProjectWizard';
 import { JoinProjectModal } from '@/components/dashboard/JoinProjectModal';
+import { AccountPrivacyToggle } from '@/components/dashboard/AccountPrivacyToggle';
+import { MyClassesPanel } from '@/components/dashboard/MyClassesPanel';
+import { MyInvitesPanel } from '@/components/dashboard/MyInvitesPanel';
 import { MyTasksPanel } from '@/components/dashboard/MyTasksPanel';
 import { ProjectList } from '@/components/dashboard/ProjectList';
 import { OnboardingTour } from '@/components/onboarding/OnboardingTour';
@@ -18,8 +21,11 @@ interface DashboardShellProps {
   userName: string;
   userEmail: string;
   userAvatarUrl: string | null;
+  userIsPublic: boolean;
   projects: DashboardProject[];
   myTasks: DashboardAssignedTask[];
+  userClasses: Array<{ id: string; classId: string; name: string }>;
+  invites: Array<{ id: string; projectId: string; projectName: string; fromUserName: string; createdAt: string }>;
 }
 
 function getInitials(nameOrEmail: string) {
@@ -31,7 +37,16 @@ function getInitials(nameOrEmail: string) {
     .join('');
 }
 
-export function DashboardShell({ userName, userEmail, userAvatarUrl, projects, myTasks }: DashboardShellProps) {
+export function DashboardShell({
+  userName,
+  userEmail,
+  userAvatarUrl,
+  userIsPublic,
+  projects,
+  myTasks,
+  userClasses,
+  invites,
+}: DashboardShellProps) {
   const [createOpen, setCreateOpen] = useState(false);
   const [joinOpen, setJoinOpen] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
@@ -84,6 +99,12 @@ export function DashboardShell({ userName, userEmail, userAvatarUrl, projects, m
 
         <section>
           <MyTasksPanel tasks={myTasks} />
+        </section>
+
+        <section className="grid gap-4 lg:grid-cols-3">
+          <MyClassesPanel initialClasses={userClasses} />
+          <MyInvitesPanel invites={invites} />
+          <AccountPrivacyToggle initialIsPublic={userIsPublic} />
         </section>
       </div>
 

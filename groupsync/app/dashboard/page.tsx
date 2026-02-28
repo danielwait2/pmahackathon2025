@@ -14,7 +14,7 @@ export default async function DashboardPage() {
 
   const user = await prisma.user.findUnique({
     where: { id: session.user.id },
-    select: { name: true, email: true, avatarUrl: true },
+    select: { name: true, email: true, avatarUrl: true, isPublic: true },
   });
 
   const projectMemberships = await prisma.projectMember.findMany({
@@ -104,7 +104,7 @@ export default async function DashboardPage() {
         description: project.description,
         deadline: project.deadline?.toISOString() ?? null,
         classId: project.classId,
-        className: project.class?.name ?? null,
+        className: project.class?.name ?? project.classLabel ?? null,
         isAssignment: project.isAssignment ?? false,
         created_by: project.createdById,
         invite_code: project.inviteCode,
@@ -127,6 +127,33 @@ export default async function DashboardPage() {
     }));
   }
 
+  const [userClasses, invites] = await Promise.all([
+    prisma.userClass.findMany({
+      where: { userId: session.user.id },
+      include: {
+        class: {
+          select: { id: true, name: true },
+        },
+      },
+      orderBy: { class: { name: 'asc' } },
+    }),
+    prisma.projectMemberRequest.findMany({
+      where: {
+        toUserId: session.user.id,
+        status: 'pending',
+      },
+      include: {
+        project: {
+          select: { id: true, name: true },
+        },
+        fromUser: {
+          select: { id: true, name: true },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+    }),
+  ]);
+
   return (
     <main className="min-h-screen bg-slate-50">
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
@@ -134,8 +161,21 @@ export default async function DashboardPage() {
           userName={user?.name ?? session.user?.name ?? 'GroupSync User'}
           userEmail={user?.email ?? session.user?.email ?? ''}
           userAvatarUrl={user?.avatarUrl ?? null}
+          userIsPublic={user?.isPublic ?? false}
           projects={projects}
           myTasks={myTasks}
+          userClasses={userClasses.map((row) => ({
+            id: row.id,
+            classId: row.class.id,
+            name: row.class.name,
+          }))}
+          invites={invites.map((invite) => ({
+            id: invite.id,
+            projectId: invite.project.id,
+            projectName: invite.project.name,
+            fromUserName: invite.fromUser.name,
+            createdAt: invite.createdAt.toISOString(),
+          }))}
         />
       </div>
     </main>

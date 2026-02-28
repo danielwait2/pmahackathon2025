@@ -402,3 +402,19 @@ Connect to Neon PostgreSQL
 **Created:** 2026-02-14
 **Last Updated:** 2026-02-14
 **Maintained By:** GroupSync Team
+
+---
+
+## 2026-02-28 Architecture Notes
+
+### Recent collaborators query logic
+- Source user: authenticated viewer on `project/[id]`.
+- Query all `ProjectMember` rows for that user to get project IDs.
+- Query other authenticated members across those project IDs, ordered by `joinedAt desc`.
+- Deduplicate by `user.id` and take top N (currently 8) for the add-member dialog.
+
+### Direct add-member flow
+- Search endpoint: `GET /api/users/search?query=...`.
+- Invite endpoint: `POST /api/projects/[id]/member-requests`.
+- Incoming queue: `GET /api/user/invites`.
+- Response endpoint: `PATCH /api/user/invites/[id]` with `{ action: "accept" | "decline" }`.

@@ -56,6 +56,60 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
     notFound();
   }
 
+  const [pendingRequests, recentCollaborators] = await Promise.all([
+    prisma.projectMemberRequest.findMany({
+      where: {
+        projectId: project.id,
+        status: 'pending',
+      },
+      select: { toUserId: true },
+    }),
+    member.userId
+      ? (async () => {
+          const memberships = await prisma.projectMember.findMany({
+            where: { userId: member.userId },
+            select: { projectId: true },
+          });
+          const membershipProjectIds = memberships.map((row) => row.projectId);
+          if (membershipProjectIds.length === 0) {
+            return [];
+          }
+
+          const collaboratorRows = await prisma.projectMember.findMany({
+            where: {
+              projectId: { in: membershipProjectIds },
+              userId: { not: member.userId },
+            },
+            include: {
+              user: {
+                select: {
+                  id: true,
+                  name: true,
+                  email: true,
+                },
+              },
+            },
+            orderBy: { joinedAt: 'desc' },
+            take: 50,
+          });
+
+          const deduped = new Map<string, { id: string; name: string; email: string | null }>();
+          for (const row of collaboratorRows) {
+            if (!row.user) continue;
+            if (!deduped.has(row.user.id)) {
+              deduped.set(row.user.id, {
+                id: row.user.id,
+                name: row.user.name,
+                email: row.user.email,
+              });
+            }
+          }
+
+          return Array.from(deduped.values()).slice(0, 8);
+        })()
+      : Promise.resolve([]),
+  ]);
+
   const currentWeekStart = getCurrentWeekStart();
 
   return (
@@ -65,7 +119,7 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
           name={project.name}
           description={project.description}
           deadline={project.deadline?.toISOString() ?? null}
-          className={project.class?.name ?? null}
+          className={project.class?.name ?? project.classLabel ?? null}
           isAssignment={project.isAssignment}
           inviteCode={project.inviteCode}
           memberCount={project.members.length}
@@ -115,6 +169,8 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
               (!member.isGuest && a.userId === member.userId)
             )?.slots ?? '[]', currentWeekStart))
           }
+          recentCollaborators={recentCollaborators}
+          pendingRequestUserIds={pendingRequests.map((request) => request.toUserId)}
         />
       </div>
     </main>

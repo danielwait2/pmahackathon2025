@@ -221,7 +221,7 @@ export function CreateProjectWizard({ open, onOpenChange }: CreateProjectWizardP
             </div>
             <div className="space-y-2">
               <Label>Class (optional)</Label>
-              <ClassSelector value={classId} onChange={setClassId} />
+              <ClassSelector value={classId} onChange={setClassId} showMyClasses />
             </div>
             <div className="space-y-2">
               <Label>Deadline</Label>
