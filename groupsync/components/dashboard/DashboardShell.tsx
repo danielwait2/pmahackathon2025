@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { LogOut, Plus, UserPlus } from 'lucide-react';
 import { signOut } from 'next-auth/react';
 import { toast } from 'sonner';
@@ -35,6 +35,18 @@ export function DashboardShell({ userName, userEmail, userAvatarUrl, projects, m
   const [createOpen, setCreateOpen] = useState(false);
   const [joinOpen, setJoinOpen] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
+  const [projectFilter, setProjectFilter] = useState<'all' | 'group' | 'personal'>('all');
+
+  const filteredProjects = useMemo(() => {
+    switch (projectFilter) {
+      case 'group':
+        return projects.filter((p) => !p.isPersonal);
+      case 'personal':
+        return projects.filter((p) => p.isPersonal);
+      default:
+        return projects;
+    }
+  }, [projects, projectFilter]);
 
   const handleLogout = async () => {
     setLoggingOut(true);
@@ -78,8 +90,43 @@ export function DashboardShell({ userName, userEmail, userAvatarUrl, projects, m
         </header>
 
         <section className="space-y-4">
-          <h1 className="text-3xl font-black tracking-tight text-slate-900">Your Projects</h1>
-          <ProjectList projects={projects} onCreateProject={() => setCreateOpen(true)} onJoinProject={() => setJoinOpen(true)} />
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <h1 className="text-3xl font-black tracking-tight text-slate-900">Your Projects</h1>
+            <div className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-white p-1 text-xs font-medium text-slate-600">
+              <button
+                type="button"
+                onClick={() => setProjectFilter('all')}
+                className={`rounded-full px-3 py-1 transition ${
+                  projectFilter === 'all' ? 'bg-slate-900 text-white' : 'hover:bg-slate-100'
+                }`}
+              >
+                All
+              </button>
+              <button
+                type="button"
+                onClick={() => setProjectFilter('group')}
+                className={`rounded-full px-3 py-1 transition ${
+                  projectFilter === 'group' ? 'bg-slate-900 text-white' : 'hover:bg-slate-100'
+                }`}
+              >
+                Group
+              </button>
+              <button
+                type="button"
+                onClick={() => setProjectFilter('personal')}
+                className={`rounded-full px-3 py-1 transition ${
+                  projectFilter === 'personal' ? 'bg-slate-900 text-white' : 'hover:bg-slate-100'
+                }`}
+              >
+                Personal
+              </button>
+            </div>
+          </div>
+          <ProjectList
+            projects={filteredProjects}
+            onCreateProject={() => setCreateOpen(true)}
+            onJoinProject={() => setJoinOpen(true)}
+          />
         </section>
 
         <section>

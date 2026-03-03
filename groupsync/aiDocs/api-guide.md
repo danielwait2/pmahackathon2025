@@ -100,8 +100,7 @@ Create a new project.
   "name": "New Project",
   "description": "Project description",
   "deadline": "2026-05-15",
-  "classId": "class-uuid",
-  "isAssignment": true
+  "classId": "class-uuid"
 }
 ```
 

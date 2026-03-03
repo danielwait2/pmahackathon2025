@@ -65,11 +65,6 @@ export function ProjectCard({ project }: ProjectCardProps) {
         <div className="flex items-start justify-between gap-3">
           <div className="flex min-w-0 flex-1 items-center gap-2">
             <CardTitle className="line-clamp-1 text-base sm:text-lg">{project.name}</CardTitle>
-            {project.isAssignment && (
-              <Badge variant="secondary" className="shrink-0 bg-amber-100 text-amber-800 text-xs">
-                Assignment
-              </Badge>
-            )}
           </div>
           <Badge className={deadline.className}>{deadline.label}</Badge>
         </div>
@@ -101,7 +96,6 @@ export function ProjectCard({ project }: ProjectCardProps) {
           </AvatarGroup>
         </div>
 
-        {!project.isAssignment && (
         <div className="space-y-2">
           <div className="flex items-center justify-between text-sm">
             <div className="flex items-center gap-2 text-slate-600">
@@ -116,7 +110,6 @@ export function ProjectCard({ project }: ProjectCardProps) {
             <div className="h-full rounded-full bg-blue-600 transition-all" style={{ width: `${progressPercent}%` }} />
           </div>
         </div>
-        )}
       </CardContent>
     </Card>
   );

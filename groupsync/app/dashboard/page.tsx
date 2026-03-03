@@ -105,7 +105,7 @@ export default async function DashboardPage() {
         deadline: project.deadline?.toISOString() ?? null,
         classId: project.classId,
         className: project.class?.name ?? null,
-        isAssignment: project.isAssignment ?? false,
+        isPersonal: project.isPersonal ?? false,
         created_by: project.createdById,
         invite_code: project.inviteCode,
         created_at: project.createdAt.toISOString(),

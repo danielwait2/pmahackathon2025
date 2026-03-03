@@ -24,7 +24,7 @@ interface ProjectTabsProps {
   currentMemberId: string;
   actualUserId: string | null;
   isOwner: boolean;
-  isAssignment?: boolean;
+  isPersonal?: boolean;
   tasks: ProjectTaskItem[];
   members: TeamMemberItem[];
   teamAgreement: TeamAgreementData | null;
@@ -38,7 +38,7 @@ export function ProjectTabs({
   currentMemberId,
   actualUserId,
   isOwner,
-  isAssignment = false,
+  isPersonal = false,
   tasks,
   members,
   teamAgreement,
@@ -46,7 +46,7 @@ export function ProjectTabs({
   currentUserAvailability,
 }: ProjectTabsProps) {
   const router = useRouter();
-  const defaultTab = isAssignment ? 'availability' : 'tasks';
+  const defaultTab = 'tasks';
 
   const handleRefresh = () => {
     router.refresh();
@@ -55,12 +55,11 @@ export function ProjectTabs({
   return (
     <Tabs defaultValue={defaultTab} className="space-y-4">
       <TabsList>
-        {!isAssignment && <TabsTrigger value="tasks">Tasks</TabsTrigger>}
-        <TabsTrigger value="availability">Availability</TabsTrigger>
+        <TabsTrigger value="tasks">Tasks</TabsTrigger>
+        {!isPersonal && <TabsTrigger value="availability">Availability</TabsTrigger>}
         <TabsTrigger value="team">Team</TabsTrigger>
       </TabsList>
 
-      {!isAssignment && (
       <TabsContent value="tasks">
         <TasksTab
           projectId={projectId}
@@ -71,16 +70,17 @@ export function ProjectTabs({
           onRefresh={handleRefresh}
         />
       </TabsContent>
-      )}
 
-      <TabsContent value="availability">
-        <AvailabilityTab
-          projectId={projectId}
-          currentUserId={actualUserId}
-          initialSlots={currentUserAvailability}
-          teamAvailabilities={availabilities}
-        />
-      </TabsContent>
+      {!isPersonal && (
+        <TabsContent value="availability">
+          <AvailabilityTab
+            projectId={projectId}
+            currentUserId={actualUserId}
+            initialSlots={currentUserAvailability}
+            teamAvailabilities={availabilities}
+          />
+        </TabsContent>
+      )}
 
       <TabsContent value="team">
         <TeamTab

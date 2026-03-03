@@ -98,7 +98,6 @@ Group projects that users collaborate on.
 | `description` | String? | Project description (optional) |
 | `deadline` | DateTime? | Project deadline (optional) |
 | `classId` | String? | Associated class ID (optional) |
-| `isAssignment` | Boolean | Is this a class assignment? (default: false) |
 | `createdById` | String | Creator user ID |
 | `inviteCode` | String (unique) | 6-character invite code |
 | `shareToken` | String? (unique) | Public sharing token (optional) |

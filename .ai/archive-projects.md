@@ -70,7 +70,6 @@ export interface DashboardProject {
   deadline: string | null;
   classId: string | null;
   className: string | null;
-  isAssignment: boolean;
   archivedAt: string | null; // new
   // ...
 }
@@ -82,7 +81,6 @@ export interface Project {
   deadline: string | null;
   classId: string | null;
   class: Class | null;
-  isAssignment: boolean;
   archivedAt: string | null; // new
   // ...
 }

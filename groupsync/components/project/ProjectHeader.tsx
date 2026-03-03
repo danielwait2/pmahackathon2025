@@ -16,7 +16,6 @@ interface ProjectHeaderProps {
   description: string | null;
   deadline: string | null;
   className: string | null;
-  isAssignment?: boolean;
   inviteCode: string;
   memberCount: number;
   shareToken?: string | null;
@@ -24,7 +23,7 @@ interface ProjectHeaderProps {
   projectId?: string;
 }
 
-export function ProjectHeader({ name, description, deadline, className, isAssignment, inviteCode, memberCount, shareToken, isOwner, projectId }: ProjectHeaderProps) {
+export function ProjectHeader({ name, description, deadline, className, inviteCode, memberCount, shareToken, isOwner, projectId }: ProjectHeaderProps) {
   const [copying, setCopying] = useState(false);
 
   const copyCode = async () => {
@@ -55,11 +54,6 @@ export function ProjectHeader({ name, description, deadline, className, isAssign
         <div className="space-y-2">
           <div className="flex flex-wrap items-center gap-2">
             <h1 className="text-2xl font-black tracking-tight text-slate-900 sm:text-3xl">{name}</h1>
-            {isAssignment && (
-              <Badge variant="secondary" className="bg-amber-100 text-amber-800">
-                Assignment
-              </Badge>
-            )}
           </div>
           {description ? <p className="max-w-3xl text-slate-600">{description}</p> : null}
         </div>

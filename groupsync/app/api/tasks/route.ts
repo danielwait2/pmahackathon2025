@@ -27,12 +27,24 @@ export async function POST(request: Request) {
   const dueDate = body.dueDate ? new Date(body.dueDate) : null;
   const reminderDate = body.reminderDate ? new Date(body.reminderDate) : null;
 
+  const project = await prisma.project.findUnique({
+    where: { id: projectId },
+    select: { isPersonal: true },
+  });
+
+  let assignedTo: string | null = null;
+  if (project?.isPersonal && member.userId) {
+    assignedTo = member.userId;
+  } else if (typeof body.assignedTo === 'string' && body.assignedTo.length > 0) {
+    assignedTo = body.assignedTo;
+  }
+
   const task = await prisma.task.create({
     data: {
       projectId,
       title,
       description: typeof body.description === 'string' ? body.description.trim() || null : null,
-      assignedTo: typeof body.assignedTo === 'string' && body.assignedTo.length > 0 ? body.assignedTo : null,
+      assignedTo,
       status,
       dueDate,
       reminderDate,

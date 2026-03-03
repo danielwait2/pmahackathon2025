@@ -15,7 +15,16 @@ export async function POST(request: Request) {
   }
 
   const body = await request.json();
-  const { name, description, deadline, classId, isAssignment, responseTimeHours, meetingFrequency, communicationChannel } = body;
+  const {
+    name,
+    description,
+    deadline,
+    classId,
+    isPersonal,
+    responseTimeHours,
+    meetingFrequency,
+    communicationChannel,
+  } = body;
 
   if (!name?.trim()) {
     return NextResponse.json({ error: 'Project name is required' }, { status: 400 });
@@ -47,7 +56,7 @@ export async function POST(request: Request) {
       description: description?.trim() || null,
       deadline: deadline ? new Date(deadline) : null,
       classId: normalizedClassId,
-      isAssignment: isAssignment === true,
+      isPersonal: isPersonal === true,
       createdById: session.user.id,
       inviteCode,
       members: {

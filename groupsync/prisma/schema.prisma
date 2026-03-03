@@ -30,7 +30,7 @@ model Project {
   description  String?
   deadline     DateTime?
   classId      String?   @map("class_id")
-  isAssignment Boolean   @default(false) @map("is_assignment")
+  isPersonal   Boolean   @default(false) @map("is_personal")
   createdById  String    @map("created_by")
   inviteCode   String    @unique @map("invite_code")
   shareToken   String?   @unique @map("share_token")

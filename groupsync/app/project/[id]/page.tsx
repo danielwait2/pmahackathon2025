@@ -66,7 +66,6 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
           description={project.description}
           deadline={project.deadline?.toISOString() ?? null}
           className={project.class?.name ?? null}
-          isAssignment={project.isAssignment}
           inviteCode={project.inviteCode}
           memberCount={project.members.length}
           shareToken={project.shareToken}
@@ -79,7 +78,7 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
           currentMemberId={member.memberId}
           actualUserId={member.userId ?? member.memberId}
           isOwner={!member.isGuest && project.createdById === member.userId}
-          isAssignment={project.isAssignment}
+          isPersonal={project.isPersonal}
           tasks={project.tasks.map((task) => ({
             id: task.id,
             title: task.title,
