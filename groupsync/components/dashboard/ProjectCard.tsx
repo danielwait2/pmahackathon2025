@@ -1,9 +1,10 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { differenceInCalendarDays, format } from 'date-fns';
-import { BookOpen, CalendarClock, CheckCircle2, Users } from 'lucide-react';
+import { BookOpen, CalendarClock, Check, CheckCircle2, Users } from 'lucide-react';
+import { toast } from 'sonner';
 
 import { Avatar, AvatarFallback, AvatarGroup, AvatarGroupCount, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -13,6 +14,7 @@ import { DashboardProject } from '@/types';
 
 interface ProjectCardProps {
   project: DashboardProject;
+  currentUserId: string;
 }
 
 function getInitials(name: string) {
@@ -44,8 +46,9 @@ function getDeadlineState(deadline: string | null) {
   return { label: `${daysLeft} days left`, className: 'bg-emerald-100 text-emerald-700' };
 }
 
-export function ProjectCard({ project }: ProjectCardProps) {
+export function ProjectCard({ project, currentUserId }: ProjectCardProps) {
   const router = useRouter();
+  const [updatingArchive, setUpdatingArchive] = useState(false);
 
   const progressPercent = useMemo(() => {
     if (!project.total_tasks) return 0;
@@ -55,6 +58,30 @@ export function ProjectCard({ project }: ProjectCardProps) {
   const deadline = getDeadlineState(project.deadline);
   const shownMembers = project.members.slice(0, 3);
   const overflow = Math.max(project.member_count - shownMembers.length, 0);
+  const isOwner = project.created_by === currentUserId;
+
+  const handleArchiveToggle = async (nextArchived: boolean) => {
+    if (updatingArchive) return;
+    setUpdatingArchive(true);
+    try {
+      const res = await fetch(`/api/projects/${project.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ archived: nextArchived }),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        toast.error(data.error ?? 'Unable to update project status.');
+        return;
+      }
+      toast.success(nextArchived ? 'Project marked completed.' : 'Project moved back to active.');
+      router.refresh();
+    } catch {
+      toast.error('Unable to update project status.');
+    } finally {
+      setUpdatingArchive(false);
+    }
+  };
 
   return (
     <Card
@@ -65,6 +92,16 @@ export function ProjectCard({ project }: ProjectCardProps) {
         <div className="flex items-start justify-between gap-3">
           <div className="flex min-w-0 flex-1 items-center gap-2">
             <CardTitle className="line-clamp-1 text-base sm:text-lg">{project.name}</CardTitle>
+            {project.isPersonal && (
+              <Badge variant="secondary" className="shrink-0 bg-amber-100 text-amber-800 text-xs">
+                Personal
+              </Badge>
+            )}
+            {project.archivedAt && (
+              <Badge variant="secondary" className="shrink-0 bg-emerald-100 text-emerald-800 text-xs">
+                Completed
+              </Badge>
+            )}
           </div>
           <Badge className={deadline.className}>{deadline.label}</Badge>
         </div>
@@ -95,6 +132,28 @@ export function ProjectCard({ project }: ProjectCardProps) {
             {overflow > 0 && <AvatarGroupCount className="text-xs">+{overflow}</AvatarGroupCount>}
           </AvatarGroup>
         </div>
+        {isOwner && (
+          <div className="flex justify-end">
+            <button
+              type="button"
+              className="inline-flex items-center gap-2 rounded-md border border-slate-300 px-2 py-1 text-xs font-medium text-slate-700 hover:bg-slate-50"
+              onClick={(event) => {
+                event.stopPropagation();
+                void handleArchiveToggle(!project.archivedAt);
+              }}
+              disabled={updatingArchive}
+            >
+              <span
+                className={`inline-flex h-4 w-4 items-center justify-center rounded border ${
+                  project.archivedAt ? 'border-emerald-600 bg-emerald-600 text-white' : 'border-slate-400 bg-white text-white'
+                }`}
+              >
+                <Check className="h-3 w-3" />
+              </span>
+              {updatingArchive ? 'Saving...' : project.archivedAt ? 'Completed' : 'Mark completed'}
+            </button>
+          </div>
+        )}
 
         <div className="space-y-2">
           <div className="flex items-center justify-between text-sm">

@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { format } from 'date-fns';
-import { Trash2 } from 'lucide-react';
+import { Trash2, UserPlus } from 'lucide-react';
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { TeamAgreement, type TeamAgreementData } from './TeamAgreement';
 import { TeamAgreementEditor, type TeamAgreementFormData } from './TeamAgreementEditor';
+import { AddMemberDialog } from './AddMemberDialog';
 
 export interface TeamMemberItem {
   id: string;
@@ -28,6 +29,8 @@ interface TeamTabProps {
   isOwner: boolean;
   members: TeamMemberItem[];
   teamAgreement: TeamAgreementData | null;
+  recentCollaborators: Array<{ id: string; name: string; email: string | null }>;
+  pendingRequestUserIds: string[];
   onRefresh: () => void;
 }
 
@@ -40,10 +43,22 @@ function initials(name: string) {
     .join('');
 }
 
-export function TeamTab({ projectId, currentUserId, currentMemberId, isOwner, members, teamAgreement, onRefresh }: TeamTabProps) {
+export function TeamTab({
+  projectId,
+  currentUserId,
+  currentMemberId,
+  isOwner,
+  members,
+  teamAgreement,
+  recentCollaborators,
+  pendingRequestUserIds,
+  onRefresh,
+}: TeamTabProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [membersList, setMembersList] = useState(members);
+  const [inviteOpen, setInviteOpen] = useState(false);
+  const [pendingInvites, setPendingInvites] = useState(pendingRequestUserIds);
 
   const handleDeleteMember = async (memberId: string, memberName: string) => {
     if (!confirm(`Are you sure you want to remove ${memberName} from this project?`)) {
@@ -103,7 +118,15 @@ export function TeamTab({ projectId, currentUserId, currentMemberId, isOwner, me
     <div className="grid gap-4 lg:grid-cols-[1.3fr,1fr]">
       <Card>
         <CardHeader>
-          <CardTitle>Team Members</CardTitle>
+          <div className="flex items-center justify-between gap-2">
+            <CardTitle>Team Members</CardTitle>
+            {isOwner && (
+              <Button size="sm" onClick={() => setInviteOpen(true)}>
+                <UserPlus className="h-4 w-4" />
+                Add member
+              </Button>
+            )}
+          </div>
         </CardHeader>
         <CardContent className="space-y-3">
           {membersList.map((member) => (
@@ -164,6 +187,19 @@ export function TeamTab({ projectId, currentUserId, currentMemberId, isOwner, me
           onSubmit={handleSubmit}
         />
       )}
+
+      <AddMemberDialog
+        open={inviteOpen}
+        onOpenChange={setInviteOpen}
+        projectId={projectId}
+        onInviteSent={(userId) => {
+          setPendingInvites((current) => (current.includes(userId) ? current : [...current, userId]));
+          onRefresh();
+        }}
+        pendingRequestUserIds={pendingInvites}
+        existingMemberUserIds={membersList.map((member) => member.assigneeId).filter(Boolean) as string[]}
+        recentCollaborators={recentCollaborators}
+      />
     </div>
   );
 }

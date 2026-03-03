@@ -593,3 +593,21 @@ npx prisma studio
 **Schema Location:** `prisma/schema.prisma`
 **Last Updated:** 2026-02-14
 **Maintained By:** GroupSync Team
+
+---
+
+## 2026-02-28 Class + Invite Extensions
+
+### Project class storage for `Personal` and `Other`
+- `Project.classId` remains the normalized foreign key when linked to a real class.
+- `Project.classLabel` stores synthetic class choices (`personal` or `other`) when no `classId` is set.
+- Display rule: render `class.name` when available, otherwise `classLabel`.
+
+### New models
+- `UserClass` (`user_classes`): user-to-class enrollments for the "My classes" list.
+- `ProjectMemberRequest` (`project_member_requests`): direct invite workflow with `pending|accepted|declined`.
+- `ClassCalendarFeed` (`class_calendar_feeds`): per-user class calendar feed links and provider metadata.
+
+### Calendar import idempotency fields
+- `Project.sourceUid`, `Project.sourceProvider` for imported project-style events.
+- `Task.sourceUid`, `Task.sourceProvider`, `Task.sourceClassId` for imported assignment-style events.

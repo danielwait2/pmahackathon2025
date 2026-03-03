@@ -30,6 +30,9 @@ interface ProjectTabsProps {
   teamAgreement: TeamAgreementData | null;
   availabilities: UserAvailability[];
   currentUserAvailability: string;
+  isUsingGeneralDefault?: boolean;
+  recentCollaborators: Array<{ id: string; name: string; email: string | null }>;
+  pendingRequestUserIds: string[];
 }
 
 export function ProjectTabs({
@@ -44,6 +47,9 @@ export function ProjectTabs({
   teamAgreement,
   availabilities,
   currentUserAvailability,
+  isUsingGeneralDefault = false,
+  recentCollaborators,
+  pendingRequestUserIds,
 }: ProjectTabsProps) {
   const router = useRouter();
   const defaultTab = 'tasks';
@@ -81,6 +87,15 @@ export function ProjectTabs({
           />
         </TabsContent>
       )}
+      <TabsContent value="availability">
+        <AvailabilityTab
+          projectId={projectId}
+          currentUserId={actualUserId}
+          initialSlots={currentUserAvailability}
+          teamAvailabilities={availabilities}
+          isUsingGeneralDefault={isUsingGeneralDefault}
+        />
+      </TabsContent>
 
       <TabsContent value="team">
         <TeamTab
@@ -109,6 +124,8 @@ export function ProjectTabs({
                 }
               : null
           }
+          recentCollaborators={recentCollaborators}
+          pendingRequestUserIds={pendingRequestUserIds}
           onRefresh={handleRefresh}
         />
       </TabsContent>

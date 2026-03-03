@@ -18,6 +18,7 @@ interface Meeting {
   date: string;
   startTime: string;
   endTime: string;
+  videoUrl: string | null;
   createdById: string | null;
   createdBy: {
     id: string;
@@ -35,6 +36,7 @@ export function UpcomingMeetings({ projectId, currentUserId, refreshTrigger = 0 
   const [meetings, setMeetings] = useState<Meeting[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [linkingId, setLinkingId] = useState<string | null>(null);
 
   const fetchMeetings = useCallback(async () => {
     setIsLoading(true);
@@ -76,6 +78,34 @@ export function UpcomingMeetings({ projectId, currentUserId, refreshTrigger = 0 
       alert('Failed to delete meeting');
     } finally {
       setDeletingId(null);
+    }
+  };
+
+  const handleCreateVideoLink = async (meetingId: string, provider: 'google' | 'zoom') => {
+    setLinkingId(meetingId);
+    try {
+      const response = await fetch(`/api/meetings/${meetingId}/video-link`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ provider }),
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        alert(data.error || 'Failed to create meeting link');
+        return;
+      }
+
+      const data = await response.json();
+      setMeetings((current) =>
+        current.map((meeting) =>
+          meeting.id === meetingId ? { ...meeting, videoUrl: data.videoUrl ?? null } : meeting
+        )
+      );
+    } catch {
+      alert('Failed to create meeting link');
+    } finally {
+      setLinkingId(null);
     }
   };
 
@@ -194,6 +224,39 @@ export function UpcomingMeetings({ projectId, currentUserId, refreshTrigger = 0 
                     </div>
 
                     <div className="flex gap-1.5 flex-wrap">
+                      {meeting.videoUrl ? (
+                        <Button
+                          size="sm"
+                          className="h-8 text-xs"
+                          onClick={() => window.open(meeting.videoUrl!, '_blank', 'noopener,noreferrer')}
+                        >
+                          <ExternalLink className="h-3.5 w-3.5 mr-1" />
+                          Join meeting
+                        </Button>
+                      ) : (
+                        <>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-8 text-xs"
+                            disabled={linkingId === meeting.id}
+                            onClick={() => handleCreateVideoLink(meeting.id, 'google')}
+                          >
+                            <ExternalLink className="h-3.5 w-3.5 mr-1" />
+                            Add Meet
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-8 text-xs"
+                            disabled={linkingId === meeting.id}
+                            onClick={() => handleCreateVideoLink(meeting.id, 'zoom')}
+                          >
+                            <ExternalLink className="h-3.5 w-3.5 mr-1" />
+                            Add Zoom
+                          </Button>
+                        </>
+                      )}
                       <Button
                         variant="outline"
                         size="sm"

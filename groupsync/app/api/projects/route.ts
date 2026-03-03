@@ -31,17 +31,39 @@ export async function POST(request: Request) {
   }
 
   let normalizedClassId: string | null = null;
+  let classLabel: string | null = null;
   if (typeof classId === 'string' && classId.trim()) {
-    const selectedClass = await prisma.class.findUnique({
-      where: { id: classId.trim() },
-      select: { id: true },
-    });
+    const trimmedClassId = classId.trim();
+    if (trimmedClassId === '__personal__') {
+      classLabel = 'personal';
+    } else if (trimmedClassId === '__other__') {
+      classLabel = 'other';
+    } else {
+      const selectedClass = await prisma.class.findUnique({
+        where: { id: trimmedClassId },
+        select: { id: true },
+      });
 
-    if (!selectedClass) {
-      return NextResponse.json({ error: 'Selected class does not exist' }, { status: 400 });
+      if (!selectedClass) {
+        return NextResponse.json({ error: 'Selected class does not exist' }, { status: 400 });
+      }
+
+      normalizedClassId = selectedClass.id;
+
+      await prisma.userClass.upsert({
+        where: {
+          userId_classId: {
+            userId: session.user.id,
+            classId: selectedClass.id,
+          },
+        },
+        create: {
+          userId: session.user.id,
+          classId: selectedClass.id,
+        },
+        update: {},
+      });
     }
-
-    normalizedClassId = selectedClass.id;
   }
 
   let inviteCode = generateInviteCode();
@@ -56,7 +78,10 @@ export async function POST(request: Request) {
       description: description?.trim() || null,
       deadline: deadline ? new Date(deadline) : null,
       classId: normalizedClassId,
+changes
       isPersonal: isPersonal === true,
+
+main
       createdById: session.user.id,
       inviteCode,
       members: {

@@ -56,6 +56,79 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
     notFound();
   }
 
+  const memberUserIds = project.members
+    .map((m) => m.user?.id)
+    .filter((id): id is string => Boolean(id));
+  const defaultRows = memberUserIds.length
+    ? await prisma.userAvailabilityDefault.findMany({
+        where: { userId: { in: memberUserIds } },
+        select: { userId: true, slots: true },
+      })
+    : [];
+  const defaultByUserId = new Map(defaultRows.map((row) => [row.userId, row.slots]));
+
+  const [pendingRequests, recentCollaborators] = await Promise.all([
+    prisma.projectMemberRequest.findMany({
+      where: {
+        projectId: project.id,
+        status: 'pending',
+      },
+      select: { toUserId: true },
+    }),
+    member.userId
+      ? (async () => {
+          const memberships = await prisma.projectMember.findMany({
+            where: { userId: member.userId },
+            select: { projectId: true },
+          });
+          const membershipProjectIds = memberships.map((row) => row.projectId);
+          if (membershipProjectIds.length === 0) {
+            return [];
+          }
+
+          const collaboratorRows = await prisma.projectMember.findMany({
+            where: {
+              projectId: { in: membershipProjectIds },
+              userId: { not: member.userId },
+            },
+            include: {
+              user: {
+                select: {
+                  id: true,
+                  name: true,
+                  email: true,
+                },
+              },
+            },
+            orderBy: { joinedAt: 'desc' },
+            take: 50,
+          });
+
+          const deduped = new Map<string, { id: string; name: string; email: string | null }>();
+          for (const row of collaboratorRows) {
+            if (!row.user) continue;
+            if (!deduped.has(row.user.id)) {
+              deduped.set(row.user.id, {
+                id: row.user.id,
+                name: row.user.name,
+                email: row.user.email,
+              });
+            }
+          }
+
+          return Array.from(deduped.values()).slice(0, 8);
+        })()
+      : Promise.resolve([]),
+  ]);
+
+  const currentUserProjectAvailability = project.availability.find((a) =>
+    (member.isGuest && a.guestMemberId === member.memberId) ||
+    (!member.isGuest && a.userId === member.userId)
+  );
+  const currentUserDefaultSlots =
+    !member.isGuest && member.userId ? defaultByUserId.get(member.userId) ?? '[]' : '[]';
+  const isUsingGeneralDefault = !member.isGuest && !currentUserProjectAvailability && Boolean(member.userId);
+
   const currentWeekStart = getCurrentWeekStart();
 
   return (
@@ -71,6 +144,7 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
           shareToken={project.shareToken}
           isOwner={!member.isGuest && project.createdById === member.userId}
           projectId={project.id}
+          archivedAt={project.archivedAt?.toISOString() ?? null}
         />
         <ProjectTabs
           projectId={project.id}
@@ -100,20 +174,35 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
             joinedAt: m.joinedAt.toISOString(),
           }))}
           teamAgreement={project.teamAgreement}
-          availabilities={project.availability.map((avail) => {
-            const slots = extractWeekSlots(avail.slots, currentWeekStart);
+          availabilities={project.members.map((memberRow) => {
+            if (memberRow.user) {
+              const explicitAvailability = project.availability.find((avail) => avail.userId === memberRow.user!.id);
+              const sourceSlots = explicitAvailability?.slots ?? defaultByUserId.get(memberRow.user.id) ?? '[]';
+              return {
+                userId: memberRow.user.id,
+                userName: memberRow.user.name,
+                slots: extractWeekSlots(sourceSlots, currentWeekStart),
+              };
+            }
+
+            const guestAvailability = project.availability.find((avail) => avail.guestMemberId === memberRow.id);
             return {
-              userId: avail.userId || avail.guestMemberId || '',
-              userName: avail.user?.name || avail.guestMember?.guestName || 'Guest',
-              slots,
+              userId: memberRow.id,
+              userName: memberRow.guestName || 'Guest',
+              slots: extractWeekSlots(guestAvailability?.slots ?? '[]', currentWeekStart),
             };
           })}
           currentUserAvailability={
-            JSON.stringify(extractWeekSlots(project.availability.find((a) =>
-              (member.isGuest && a.guestMemberId === member.memberId) ||
-              (!member.isGuest && a.userId === member.userId)
-            )?.slots ?? '[]', currentWeekStart))
+            JSON.stringify(
+              extractWeekSlots(
+                currentUserProjectAvailability?.slots ?? currentUserDefaultSlots,
+                currentWeekStart
+              )
+            )
           }
+          isUsingGeneralDefault={isUsingGeneralDefault}
+          recentCollaborators={recentCollaborators}
+          pendingRequestUserIds={pendingRequests.map((request) => request.toUserId)}
         />
       </div>
     </main>
@@ -134,7 +223,7 @@ function extractWeekSlots(raw: string, weekStart: string): { day: number; startH
   try {
     const parsed = JSON.parse(raw);
     if (Array.isArray(parsed)) {
-      return weekStart === getCurrentWeekStart() ? parsed : [];
+      return parsed;
     }
     if (parsed && typeof parsed === 'object') {
       const weekSlots = (parsed as Record<string, unknown>)[weekStart];

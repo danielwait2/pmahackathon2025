@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -24,6 +25,7 @@ interface AvailabilityTabProps {
   currentUserId: string | null;
   initialSlots: string; // JSON string from database
   teamAvailabilities: UserAvailability[];
+  isUsingGeneralDefault?: boolean;
 }
 
 export function AvailabilityTab({
@@ -31,6 +33,7 @@ export function AvailabilityTab({
   currentUserId,
   initialSlots,
   teamAvailabilities,
+  isUsingGeneralDefault = false,
 }: AvailabilityTabProps) {
   const router = useRouter();
   const [mySlots, setMySlots] = useState<TimeSlot[]>(() => jsonToSlots(initialSlots));
@@ -42,6 +45,7 @@ export function AvailabilityTab({
   const [isLoadingWeek, setIsLoadingWeek] = useState(true); // Start true to fetch on mount
   const [isQuickScheduleOpen, setIsQuickScheduleOpen] = useState(false);
   const [quickScheduleSlot, setQuickScheduleSlot] = useState<TimeSlot | null>(null);
+  const [hasCustomizedProjectAvailability, setHasCustomizedProjectAvailability] = useState(!isUsingGeneralDefault);
 
   const weekLabel = useMemo(() => getWeekRangeLabel(weekOffset), [weekOffset]);
   const weekStart = useMemo(() => getWeekStartKey(weekOffset), [weekOffset]);
@@ -49,6 +53,10 @@ export function AvailabilityTab({
   useEffect(() => {
     setTeamData(teamAvailabilities);
   }, [teamAvailabilities]);
+
+  useEffect(() => {
+    setHasCustomizedProjectAvailability(!isUsingGeneralDefault);
+  }, [isUsingGeneralDefault]);
 
   // Always fetch from API - uses client's weekStart for correct week-key extraction (fixes timezone mismatch)
   useEffect(() => {
@@ -96,6 +104,7 @@ export function AvailabilityTab({
       });
       if (res.ok) {
         setHasChanges(false);
+        setHasCustomizedProjectAvailability(true);
         setMeetingRefreshTrigger((prev) => prev + 1);
         router.refresh(); // Refetch server data so team heatmap updates
       }
@@ -135,6 +144,12 @@ export function AvailabilityTab({
         <div>
           <p className="text-sm font-semibold text-slate-900">{weekLabel}</p>
           {weekOffset !== 0 && <p className="text-xs text-blue-700">Viewing {weekOffset > 0 ? 'future' : 'past'} week</p>}
+          {isUsingGeneralDefault && !hasCustomizedProjectAvailability && (
+            <p className="text-xs text-emerald-700">You are currently using your general availability for this project.</p>
+          )}
+          {hasCustomizedProjectAvailability && (
+            <p className="text-xs text-slate-600">This project uses its own availability overrides.</p>
+          )}
         </div>
         <div className="flex items-center gap-2">
           <Button variant="outline" size="sm" onClick={() => setWeekOffset((prev) => prev - 1)}>
@@ -148,6 +163,9 @@ export function AvailabilityTab({
             Next
             <ChevronRight className="h-4 w-4" />
           </Button>
+          <Link href="/settings/availability">
+            <Button variant="outline" size="sm">Edit My General Availability</Button>
+          </Link>
         </div>
       </div>
 

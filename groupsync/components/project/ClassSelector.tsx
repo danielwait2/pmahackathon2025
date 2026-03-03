@@ -19,12 +19,16 @@ interface ClassSelectorProps {
   value: string | null;
   onChange: (classId: string | null) => void;
   disabled?: boolean;
+  showMyClasses?: boolean;
 }
 
 const NONE_VALUE = '__none__';
+const PERSONAL_VALUE = '__personal__';
+const OTHER_VALUE = '__other__';
 
-export function ClassSelector({ value, onChange, disabled = false }: ClassSelectorProps) {
+export function ClassSelector({ value, onChange, disabled = false, showMyClasses = false }: ClassSelectorProps) {
   const [classes, setClasses] = useState<ClassOption[]>([]);
+  const [myClasses, setMyClasses] = useState<ClassOption[]>([]);
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
   const [newClassName, setNewClassName] = useState('');
@@ -32,12 +36,27 @@ export function ClassSelector({ value, onChange, disabled = false }: ClassSelect
   useEffect(() => {
     const loadClasses = async () => {
       try {
-        const res = await fetch('/api/classes');
-        if (!res.ok) {
+        const [allClassesRes, userClassesRes] = await Promise.all([
+          fetch('/api/classes'),
+          showMyClasses ? fetch('/api/user/classes') : Promise.resolve(null),
+        ]);
+
+        if (!allClassesRes.ok) {
           throw new Error('Unable to fetch classes');
         }
-        const data: ClassOption[] = await res.json();
-        setClasses(data);
+        const allClasses: ClassOption[] = await allClassesRes.json();
+        setClasses(allClasses);
+
+        if (showMyClasses && userClassesRes?.ok) {
+          const userClassRows: Array<{ id: string; classId: string; name: string }> = await userClassesRes.json();
+          setMyClasses(
+            userClassRows.map((row) => ({
+              id: row.classId,
+              name: row.name,
+              createdAt: '',
+            }))
+          );
+        }
       } catch {
         toast.error('Unable to load classes.');
       } finally {
@@ -46,7 +65,7 @@ export function ClassSelector({ value, onChange, disabled = false }: ClassSelect
     };
 
     void loadClasses();
-  }, []);
+  }, [showMyClasses]);
 
   const canCreate = useMemo(() => newClassName.trim().length > 0, [newClassName]);
 
@@ -74,6 +93,12 @@ export function ClassSelector({ value, onChange, disabled = false }: ClassSelect
         const next = current.some((item) => item.id === savedClass.id) ? current : [...current, savedClass];
         return next.sort((a, b) => a.name.localeCompare(b.name));
       });
+      if (showMyClasses) {
+        setMyClasses((current) => {
+          const next = current.some((item) => item.id === savedClass.id) ? current : [...current, savedClass];
+          return next.sort((a, b) => a.name.localeCompare(b.name));
+        });
+      }
       onChange(savedClass.id);
       setNewClassName('');
     } catch {
@@ -82,6 +107,9 @@ export function ClassSelector({ value, onChange, disabled = false }: ClassSelect
       setCreating(false);
     }
   };
+
+  const myClassIds = new Set(myClasses.map((item) => item.id));
+  const catalogWithoutMyClasses = classes.filter((item) => !myClassIds.has(item.id));
 
   return (
     <div className="space-y-2">
@@ -95,7 +123,21 @@ export function ClassSelector({ value, onChange, disabled = false }: ClassSelect
         </SelectTrigger>
         <SelectContent>
           <SelectItem value={NONE_VALUE}>None</SelectItem>
-          {classes.map((classOption) => (
+          <SelectItem value={PERSONAL_VALUE}>Personal</SelectItem>
+          <SelectItem value={OTHER_VALUE}>Other</SelectItem>
+          {showMyClasses && myClasses.length > 0 && (
+            <div className="px-2 py-1 text-xs font-semibold uppercase tracking-wide text-slate-500">My classes</div>
+          )}
+          {showMyClasses &&
+            myClasses.map((classOption) => (
+              <SelectItem key={`my-${classOption.id}`} value={classOption.id}>
+                {formatClassNameForDisplay(classOption.name)}
+              </SelectItem>
+            ))}
+          {catalogWithoutMyClasses.length > 0 && (
+            <div className="px-2 py-1 text-xs font-semibold uppercase tracking-wide text-slate-500">All classes</div>
+          )}
+          {catalogWithoutMyClasses.map((classOption) => (
             <SelectItem key={classOption.id} value={classOption.id}>
               {formatClassNameForDisplay(classOption.name)}
             </SelectItem>
