@@ -49,7 +49,6 @@ function parseIcsDate(raw: string): { date: Date | null; allDay: boolean } {
 
   return { date, allDay: false };
 }
-
 function unescapeIcsText(value: string) {
   return value
     .replace(/\\n/gi, '\n')
